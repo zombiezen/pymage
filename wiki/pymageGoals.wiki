@@ -1,5 +1,5 @@
 #summary Goals for pymage
-#labels Phase-Requirements
+#labels Phase-Requirements,Featured
 = Main Goal =
 
 Make creation of pygame-based games/applications easier.  Most functionality of pymage
