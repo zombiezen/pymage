@@ -6,16 +6,19 @@ Make creation of pygame-based games/applications easier.  Most functionality of 
 should be oriented toward creating games.
 
 = Completed =
+
  * File-based configuration
  * Resource managers
  * Vectors
  * State machine
 
 = In Progress =
+
  * Joystick support (stable)
  * UI Support
 
-= Short-Term Goals = 
+= Short-Term Goals =
+
  * Resource sets
  * Fast vectors written in C
 
