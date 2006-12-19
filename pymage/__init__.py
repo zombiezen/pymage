@@ -31,3 +31,10 @@ __all__ = ['config',
            'sprites',
            'states',
            'vector',]
+
+import config
+import joystick
+import sound
+import sprites
+import states
+import vector
