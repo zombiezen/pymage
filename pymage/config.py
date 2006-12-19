@@ -23,10 +23,13 @@
 
 """
 Provide configuration for your game.
-The typical use of this module is to use the setup function and give set up
+
+The typical use of this module is to use the `setup` function and give set up
 parameters.  From there, the module sets up the correct parts of the pymage
 library.
+
 This module is not strictly necessary, but pymage's reasoning is as follows:
+
 Resources for the game should be loaded on an location-independent basis.
 This provides abstraction and the ability for arbitrary file structure.
 However, these files eventually need to be located, so the developer should
@@ -37,6 +40,50 @@ drive).  Therefore, a separate file is used to override the behavior of any
 given installation of the game.  But since the user never touches the
 developer's default game setup, any corrupt preferences can be corrected by
 deleting the user configuration files.
+
+Here is a sample gamesite.xml file::
+
+    <?xml version="1.0"?>
+    
+    <!-- name is not necessary, but reserved for future use. -->
+    <game-site name="Sample Game">
+        <!-- Prepare an image in the ImageManager.
+             The id attribute is used as the tag.
+             The path element is required to find the file.
+             The section and option elements specify how the path can be
+             overriden in configuration files. -->
+        <image id="SampleImage">
+            <section>sprites</section>
+            <option>sample</option>
+            <path>img/sample.png</path>
+        </image>
+        
+        <!-- Prepare a sound in the SoundManager.
+             The id attribute is used as the tag.
+             The path element is required to find the file.
+             The section and option elements specify how the path can be
+             overriden in configuration files. -->
+        <sound id="SampleSound">
+            <section>sounds</section>
+            <option>sample</option>
+            <path>sfx/sample.wav</path>
+        </sound>
+        
+        <!-- Prepare a playlist in the MusicManager.
+             The id attribute is used as the tag.
+             The path element(s) are required to find the music file(s).
+             The section and option elements specify how the playlist can be
+             overriden in configuration files. -->
+        <playlist id="SamplePlaylist">
+            <section>playlists</section>
+            <option>sample</option>
+            <path>music/song1.wav</path>
+            <path>music/song2.wav</path>
+        </playlist>
+        
+        <!-- Specify additional configuration files. -->
+        <config-file>userconfig.ini</config-file>
+    </game-site>
 """
 
 from ConfigParser import ConfigParser
@@ -50,20 +97,21 @@ from sprites import ImageManager
 __author__ = 'Ross Light'
 __date__ = 'August 10, 2006'
 __all__ = ['load', 'getOption', 'setup']
+__docformat__ = 'reStructuredText'
 
 class CaseConfigParser(ConfigParser):
-    """A ConfigParser that is case-sensitive."""
+    """A ``ConfigParser`` that is case-sensitive."""
     def optionxform(self, optstr):
         return optstr
 
 def load(*args, **kw):
     """
     Load a series of configuration files.
-    This function returns a dictionary of values.
-    Any optional keyword values are used as variables.
-    The special keyword "convert" specifies whether the function should
-    interpret the values as what they seem to be (e.g. float, int).  The default
-    is True.
+    
+    This function returns a dictionary of values.  Any optional keyword values
+    are used as variables.  The special keyword ``convert`` specifies whether
+    the function should interpret the values as what they seem to be
+    (e.g. ``float``, ``int``).  The default is ``True``.
     """
     # Retrieve convert keyword
     convertValues = kw.get('convert', True)
@@ -99,7 +147,7 @@ def load(*args, **kw):
     return d
 
 def getValue(s):
-    """Retrieves a value from a ConfigParser string."""
+    """Retrieves a value from a ``ConfigParser`` string."""
     boolLiterals = {'false': False,
                     'no': False,
                     'off': False,
@@ -117,9 +165,11 @@ def getValue(s):
 
 def isFloat(s):
     """
-    Returns whether the string is a float.
-    The format for a float is:
-    int[.[fraction]]
+    Returns whether the string is a ``float``.
+    
+    The format for a float is::
+    
+        int[.[fraction]]
     """
     if s.isdigit():         # int
         return True
@@ -145,13 +195,15 @@ def setup(site='gamesite.xml', *configFiles):
     """
     Sets up a game from the specified parameters and returns the configuration
     dictionary.
+    
     The first argument is the game site file.  The game site file contains most
     of the setup information.  It specifies the resource IDs and where to find
     the configuration files.  It should only be modified by developers as the
     game is created.
+    
     The additional arguments are program default configuration files.  These
     are parsed before any inside the game site file (therefore giving the site
-    config files higher precedence).
+    configuration files higher precedence).
     """
     images, sounds, playlists, siteConfigs = parseGameSite(site)
     configFiles = list(configFiles) + list(siteConfigs)

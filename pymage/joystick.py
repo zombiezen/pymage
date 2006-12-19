@@ -29,14 +29,16 @@ from pygame.locals import *
 __author__ = 'Ross Light'
 __date__ = 'July 20, 2006'
 __all__ = ['Axis']
+__docformat__ = 'reStructuredText'
 
 class Axis(object):
     """
     Represents a joystick axis.
-    There is an attribute, perfect, that is defaulted to false.  When true, a
-    few extra calculations are performed to ensure that the axis is always
-    within the -1.0 to 1.0 range.  Otherwise, the only calculation performed is
-    inversion.
+    
+    There is an attribute, ``perfect``, that is defaulted to ``False``.  When
+    ``True``, a few extra calculations are performed to ensure that the axis is
+    always within the -1.0 to 1.0 range.  Otherwise, the only calculation
+    performed is inversion.
     """
     perfMin = -1.0
     perfMid = 0.0
@@ -54,8 +56,10 @@ class Axis(object):
     
     def addEntry(self, n):
         """
-        If the axis is in perfect mode, this calibrates the axis from the
-        information given.  You shouldn't need to use this, instead, use sample.
+        If the axis is in perfect mode, calibrate the axis from the information
+        given.
+        
+        You shouldn't need to use this, instead, use `sample`.
         """
         if self.perfect:
             if n > self.max:
@@ -71,7 +75,8 @@ class Axis(object):
     
     def sample(self):
         """
-        Samples calibration info for the axis.
+        Samples calibration information for the axis.
+        
         This method only needs to be called in perfect mode.  It is not
         neccessary in normal mode, but shouldn't take a performance hit, so you
         should probably stick it in your code anyway.
@@ -82,13 +87,13 @@ class Axis(object):
     def convert(self, rawValue):
         """
         Converts a raw value from the joystick.
-        You shouldn't need to use this, instead, use get.
+        
+        You shouldn't need to use this, instead, use `get`.
         """
         if self.perfect:
             val = (rawValue + self.offset) * self.scale
         else:
             val = rawValue
-        
         if self.invert:
             val = -val
         return val
@@ -96,6 +101,7 @@ class Axis(object):
     def get(self):
         """
         Retrieves the current value of the axis.
+        
         If the axis is in perfect mode, this performs calculations based on
         previous calibration information to ensure it is perfect.  If in normal
         mode, this retreives the raw value (inverted, if necessary).

@@ -35,6 +35,7 @@ import sound
 __author__ = 'Ross Light'
 __date__ = 'May 22, 2006'
 __all__ = ['State', 'Paused', 'Game']
+__docformat__ = 'reStructuredText'
 
 class State(object):
     """Game state that handles events and displays on a surface."""
@@ -47,6 +48,7 @@ class State(object):
     def handle(self, event):
         """
         Hook method for handling events.
+        
         This implementation *should* always be called.
         """
         if event.type == QUIT:
@@ -55,19 +57,24 @@ class State(object):
             sys.exit()
     
     def update(self, game):
-        """Hook method for updating the state."""
+        """
+        Hook method for updating the state.
+        
+        ``game`` is an instance of `Game`.
+        """
         pass
     
     def firstDisplay(self, screen):
         """
-        Hook method for displaying the State for the first time.
-        By default, this merely fils the screen with the background color.
+        Hook method for displaying the `State` for the first time.
+        
+        By default, this merely fills the screen with the background color.
         """
         screen.fill(self.bgColor)
         pygame.display.flip()       # Swap buffers
     
     def display(self, screen):
-        """Hook method for drawing the state."""
+        """Hook method for drawing the `State`."""
         pass
 
 class Paused(State):
@@ -122,7 +129,6 @@ class Paused(State):
         height = len(lines) * font.get_linesize()
         center, top = screen.get_rect().center
         top -= height // 2
-        
         # Show image
         if self.image:
             if isinstance(self.image, basestring):
@@ -133,7 +139,6 @@ class Paused(State):
             top += imageRect.height // 2
             imageRect.midbottom = center, top - 20
             screen.blit(image, imageRect)   # show the image
-        
         # Render lines
         antialias = True
         for line in lines:
@@ -142,18 +147,17 @@ class Paused(State):
             textRect.midtop = center, top
             screen.blit(text, textRect)
             top += font.get_linesize()
-        
         # Show cursor (if necessary)
         pygame.mouse.set_visible(self.showCursor)
-        
         pygame.display.flip()   # swap buffers
     
     def nextState(self):
         """
-        Hook method for reaching the next state.  Raises a NotImplementedError
-        if not overridden.
+        Hook method for advancing to the next state.
+        
+        Raises a ``NotImplementedError`` if not overridden.
         """
-        raise NotImplementedError, "Override nextState"
+        raise NotImplementedError("Override nextState")
 
 class Game(object):
     """Game object that manages the state machine."""
@@ -172,13 +176,16 @@ class Game(object):
         self.__dict__.update(kw)
     
     def changeToState(self, state):
-        """Changes to the given state on the next event loop iteration."""
+        """
+        Changes to the given `State` instance on the next event loop iteration.
+        """
         self.nextState = state
     
     def run(self):
         """
         Run main event loop.
-        You shouldn't have to override this...
+        
+        You *shouldn't* have to override this...
         """
         pygame.init()
         self.screen = pygame.display.set_mode(self.screenSize, self.flags)
@@ -189,14 +196,15 @@ class Game(object):
         self.postloop()
     
     def preloop(self):
-        """Override this to do something before the event loop starts."""
+        """Hook method to do something before the event loop starts."""
         pass
     
     def iterate(self):
         """
-        Called to perform the event loop.
-        You shouldn't have to override the core functionality, but you may wish
-        to override this method to do something before or after.
+        Called to perform one iteration of the event loop.
+        
+        You *shouldn't* have to override the core functionality, but you may
+        wish to override this method to do something before or after.
         """
         # Constant FPS, Potter!
         self.clock.tick(self.ticks)
@@ -216,5 +224,5 @@ class Game(object):
         self.state.display(self.screen)
     
     def postloop(self):
-        """Override this to do something after the event loop exits."""
+        """Hook method to do something after the event loop exits."""
         pass

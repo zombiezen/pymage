@@ -31,6 +31,7 @@ __all__ = ['config',
            'sprites',
            'states',
            'vector',]
+__docformat__ = 'reStructuredText'
 
 import config
 import joystick
