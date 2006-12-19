@@ -1,0 +1,11 @@
+#summary Different releases and their changes
+
+= Version 0.1.1 =
+
+ * Ported setup script to setuptools
+ * Updated information in setup scripts.
+
+= Version 0.1.0 =
+
+* First public release
+
