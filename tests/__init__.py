@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-#   testsite.py
+#   __init__.py
 #
 #   Copyright (C) 2006 Ross Light
 #
@@ -20,17 +20,18 @@
 #   USA
 #
 
-"""Module to add the parent directory to sys.path."""
+"""Run all tests."""
 
 __author__ = 'Ross Light'
 __date__ = 'July 26, 2006'
-__all__ = []
+__all__ = ['allSuites', 'suite']
 
-import os
-import sys
+import unittest
 
-parentDir = os.path.join(os.path.dirname(__file__), os.path.pardir)
-parentDir = os.path.abspath(parentDir)
+import vectortest
 
-if (parentDir not in sys.path and os.path.pardir not in sys.path):
-    sys.path.append(parentDir)
+allSuites = (vectortest.suite,)
+test_suite = unittest.TestSuite(allSuites)
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='test_suite')

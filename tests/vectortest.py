@@ -26,7 +26,6 @@ __all__ = ['VectorTestCase', 'suite']
 
 import unittest
 
-import testsite # To access pymage modules
 from pymage.vector import *
 
 class VectorTestCase(unittest.TestCase):
