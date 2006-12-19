@@ -35,7 +35,7 @@ if sys.version < '2.4.0':
     sys.exit(1)
 
 setup(name="pymage",
-      version='0.1.0',
+      version='0.1.1',
       description="Pygame helper package",
       author="Ross Light",
       author_email='rlight2@gmail.com',
