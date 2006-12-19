@@ -30,14 +30,20 @@ __author__ = 'Ross Light'
 __date__ = 'July 19, 2006'
 __all__ = ['MusicManager',
            'SoundManager',]
+__docformat__ = 'reStructuredText'
 
 class MusicManager(object):
     """
     Singleton class to manage the game's music.
-    Before you can use this class, you need to call the setup method.  Playlists
-    then need to be prepared with the prepare method, and started with the
-    startPlaylist method.
+    
+    For sound effects, use `SoundManager`.
+    
+    Before you can use this class, you need to call the `setup` method.
+    Playlists then need to be prepared with the `prepare` method, and started
+    with the `startPlaylist` method.
+    
     Typical order of calls:
+    
     1. setup
     2. prepare
     3. startPlaylist
@@ -67,9 +73,10 @@ class MusicManager(object):
     @classmethod
     def startPlaylist(self, tag):
         """
-        Starts a playlist denoted by tag.
-        You may pass an iterable object to startPlaylist, and the object will be
-        used as a playlist.
+        Starts a playlist denoted by ``tag``.
+        
+        You may pass an iterable object to `startPlaylist`, and the object will
+        be used as a playlist.
         """
         try:
             self.playlist = self.tagPlaylists[tag]
@@ -94,7 +101,11 @@ class MusicManager(object):
     
     @classmethod
     def pause(self):
-        """Pauses the current song.  You can resume using play."""
+        """
+        Pauses the current song.
+        
+        You can resume using `play`.
+        """
         pygame.mixer.music.pause()
         self.playing = False
     
@@ -108,8 +119,9 @@ class MusicManager(object):
     def loadSong(self, songFile=None):
         """
         Manually loads a song.
+        
         If no argument is given, the current song in the playlist is loaded.
-        This method will not load unless the music manager is configured to
+        This method will not load anything unless the manager is configured to
         play.
         """
         if songFile is None:
@@ -159,8 +171,11 @@ class MusicManager(object):
 class SoundManager(object):
     """
     Singleton class to manage sound effects.
-    For music, use the music manager.  As with the music manager, this is a
-    singleton class, so use the setup method before using it.
+    
+    For music, use `MusicManager`.
+    
+    As with `MusicManager`, this is a singleton class, so use the `setup` method
+    before using it.
     """    
     @classmethod
     def setup(self,
@@ -175,10 +190,11 @@ class SoundManager(object):
     def prepare(self, tag, defaultPath=None):
         """
         Declares a tag for later use.
-        Although you don't have to use prepare before loading a sound, it is
-        recommended you do so.  getSound will become very confused unless the
-        tags you are using are the exact path of the image (which I really don't
-        recommend).
+        
+        Although you don't have to use `prepare` before loading a sound, it is
+        recommended you do so.  `getSound` will become very confused unless the
+        tags you are using are the exact path of the sound (which I **really**
+        don't recommend).
         """
         if defaultPath is None:
             defaultPath = tag
@@ -188,9 +204,10 @@ class SoundManager(object):
     def cache(self, tag):
         """
         Caches the tag and returns the sound.
-        This will be done automatically by getSound if the cache flag is True,
-        but you may not want your users to have to have a delay when you use a
-        new resource.
+        
+        This will be done automatically by `getSound` if the ``cache`` flag is
+        ``True``, but you may not want your users to have to have a delay when
+        you use a new resource.
         """
         if tag in self.soundCache:
             sound = self.soundCache[tag]
@@ -202,7 +219,7 @@ class SoundManager(object):
     
     @classmethod
     def uncache(self, tag):
-        """Removes the sound denoted by tag from the cache."""
+        """Removes the sound denoted by ``tag`` from the cache."""
         try:
             del self.soundCache[tag]
         except KeyError:
@@ -212,8 +229,9 @@ class SoundManager(object):
     def getSound(self, tag, cache=True):
         """
         Retrieves a sound, using a cache if possible.
-        The cache flag specifies whether the sound will be cached, not whether
-        it uses the cache.
+        
+        The ``cache`` flag specifies whether the sound will be cached, not
+        whether it uses the cache.
         """
         if tag in self.soundCache:
             return self.soundCache[tag]
@@ -228,6 +246,7 @@ class SoundManager(object):
     def play(self, tag, volume=None, cache=True):
         """
         Plays a sound and returns the sound object.
+        
         This method will use a cached representation if possible.  Also, you can
         specify a non-default volume, if desired.  The cache flag specifies
         whether the sound will be cached, not whether it uses the cache.

@@ -26,25 +26,27 @@
 """Manipulate mathematical vectors."""
 
 from __future__ import division
-from decimal import Decimal
 import math
 
 __author__ = 'Ross Light'
 __date__ = 'March 3, 2006'
 __all__ = ['Vector', 'i', 'j']
+__docformat__ = 'reStructuredText'
 
-scalarClasses = (int, float, long, Decimal)
+scalarClasses = (int, float, long)
 
 class Vector(object):
     """
-    An n-dimensional vector, where n is between 1 and 3.
-    However, some methods assume it is two-dimensional (e.g. angleBetween).
+    An three-dimensional vector.
+    
+    However, some methods assume it is two-dimensional (e.g. `angleBetween`).
     """
     __slots__ = ['x', 'y', 'z', '_magnitude', '_angle']
     
     def __init__(self, x=0, y=0, z=0):
         """
-        Vector(x, y, z) -> Vector
+        ``Vector(x, y, z)`` -> `Vector`
+        
         You don't have to specify all three coordinates, only those necessary.
         """
         super(Vector, self).__setattr__('x', float(x))
@@ -52,12 +54,12 @@ class Vector(object):
         super(Vector, self).__setattr__('z', float(z))
     
     @classmethod
-    def findVector(klass, angle, magnitude):
+    def findVector(cls, angle, magnitude):
         """
-        Finds the 2-D vector with the given angle and magnitude.
-        The angle is in degrees counterclockwise from the positive X-axis.
-        This may experience round-off error, since non-Decimal math is
-        performed.
+        Finds the two-dimensional vector with the given angle and magnitude.
+        
+        The angle is in degrees counterclockwise from the positive x-axis.
+        Round-off may experience round-off error.
         """
         # Put angle in range of [0, 360)
         while angle < 0:
@@ -76,22 +78,22 @@ class Vector(object):
         else:
             sin = math.sin(radAngle)
         # Create vector
-        return klass(cos * magnitude, sin * magnitude)
+        return cls(cos * magnitude, sin * magnitude)
     
     @classmethod
     def twoPointVector(klass, p1, p2):
         """
         Finds the vector with the given points.
-        You can pass in 1-D, 2-D, or 3-D points.
+        
+        The points can be one-, two-, or three-dimensional.
         """
-        return klass(p2) - klass(p1)
+        return klass(*p2) - klass(*p1)
     
     # String conversion
     
     def __repr__(self):
-        """repr(v) <==> v.__repr__()"""
-        klass = self.__class__
-        name = '%s.%s' % (klass.__module__, klass.__name__)
+        cls = type(self)
+        name = '%s.%s' % (cls.__module__, cls.__name__)
         if not self:
             return '%s()' % (name)
         elif self.z == 0:
@@ -100,7 +102,6 @@ class Vector(object):
             return '%s(%g, %g, %g)' % (name, self.x, self.y, self.z)
     
     def __str__(self):
-        """str(v) <==> v.__str__()"""
         if self.z == 0:
             return '<%g, %g>' % (self.x, self.y)
         else:
@@ -108,41 +109,33 @@ class Vector(object):
     
     # Operators
     
-    @staticmethod
-    def _convertScalar(s):
-        return float(s)
-    
     def __neg__(self):
-        """-v <==> v.__neg__()"""
-        return self.__class__(-self.x, -self.y, -self.z)
+        return type(self)(-self.x, -self.y, -self.z)
     
     def __pos__(self):
-        """+v <==> v.__pos__()"""
-        return self.__class__(+self.x, +self.y, +self.z)
+        return type(self)(+self.x, +self.y, +self.z)
     
     def __add__(u, v):
-        """u + v <==> u.__add__(v)"""
         if isinstance(v, Vector):
-            return u.__class__(u.x + v.x, u.y + v.y, u.z + v.z)
+            return type(u)(u.x + v.x, u.y + v.y, u.z + v.z)
         else:
             return NotImplemented
     
     def __sub__(u, v):
-        """u - v <==> u.__sub__(v)"""
         if isinstance(v, Vector):
-            return u.__class__(u.x - v.x, u.y - v.y, u.z - v.z)
+            return type(u)(u.x - v.x, u.y - v.y, u.z - v.z)
         else:
             return NotImplemented
         
     def __mul__(v, other):
         """
-        v * x <==> v.__mul__(x)
-        x can be a scalar (for scalar multiplication) or a vector (for the dot
-        product).
+        ``v * x <==> v.__mul__(x)``
+        
+        x can be a scalar (scalar multiplication) or a `Vector` (dot product).
         """
         if isinstance(other, scalarClasses):    # Scalar
             s = v._convertScalar(other)
-            return v.__class__(v.x * s, v.y * s, v.z * s)
+            return type(v)(v.x * s, v.y * s, v.z * s)
         elif isinstance(other, Vector):         # Dot Product
             u, v = v, other # For algorithm simplicity
             return u.x * v.x + u.y * v.y + u.z * v.z
@@ -150,20 +143,13 @@ class Vector(object):
             return NotImplemented
     
     def __rmul__(v, other):
-        """s * v <==> v.__rmul__(s)"""
         return v.__mul__(other)
-    
-    def __pow__(v, s):
-        """v ** s <==> v.__pow__(s)"""
-        if isinstance(s, (int, long)):  # Scalar
-            return v.x ** s + v.y ** s + v.z ** s
-        else:
-            return NotImplemented
     
     def __div__(v, other):
         """
-        v / x <==> v.__div__(x)
-        x can be a scalar (for scalar division) or a vector (for dot dividend).
+        ``v / x <==> v.__div__(x)``
+        
+        ``x`` can be a scalar (scalar division) or a `Vector` (dot dividend).
         """
         # Do true division by default, because that's what one would expect,
         # since our instance variables are floats.
@@ -171,8 +157,9 @@ class Vector(object):
         
     def __truediv__(v, other):
         """
-        v / x <==> v.__div__(x)
-        x can be a scalar (for scalar division) or a vector (for dot dividend).
+        ``v / x <==> v.__truediv__(x)``
+        
+        ``x`` can be a scalar (scalar division) or a `Vector` (dot dividend).
         """
         if isinstance(other, scalarClasses):    # Scalar
             s = v._convertScalar(other)
@@ -185,8 +172,9 @@ class Vector(object):
         
     def __floordiv__(v, other):
         """
-        v // x <==> v.__div__(x)
-        x can be a scalar (for scalar division) or a vector (for dot dividend).
+        ``v // x <==> v.__floordiv__(x)``
+        
+        ``x`` can be a scalar (scalar division) or a `Vector` (dot dividend).
         """
         if isinstance(other, scalarClasses):    # Scalar
             s = v._convertScalar(other)
@@ -213,10 +201,11 @@ class Vector(object):
     
     def __iter__(self):
         """
-        iter(v) <==> v.__iter__()
+        ``iter(v) <==> v.__iter__()``
+        
         In sequence, this returns the components of the vector, and leaving z
         out if it is 0.  This is usually what you want, but you can force 2D or
-        3D by using iter2D and iter3D, respectively.
+        3D by using `iter2D` and `iter3D`, respectively.
         """
         yield self.x
         yield self.y
@@ -237,21 +226,18 @@ class Vector(object):
     # Comparison
     
     def __eq__(u, v):
-        """u == v <==> u.__eq__(v)"""
         if isinstance(v, Vector):
             return u.x == v.x and u.y == v.y and u.z == v.z
         else:
             return NotImplemented
     
     def __ne__(u, v):
-        """u != v <==> u.__ne__(v)"""
         if isinstance(v, Vector):
             return u.x != v.x or u.y != v.y or u.z != v.z
         else:
             return NotImplemented
     
     def __nonzero__(self):
-        """bool(v) <==> v.__nonzero__()"""
         return bool(self.x or self.y or self.z)
     
     def __hash__(self):
@@ -260,12 +246,10 @@ class Vector(object):
     # Component access
     
     def __setattr__(self, attr, value):
-        """v.attr = value <==> v.__setattr__(attr, value)"""
-        raise AttributeError, "Vector is an immutable object"
+        raise AttributeError("Vector is an immutable object")
     
     def __delattr__(self, attr):
-        """del v.attr <==> v.__delattr__(attr)"""
-        raise AttributeError, "Vector is an immutable object"
+        raise AttributeError("Vector is an immutable object")
     
     def _getMagnitude(self):
         try:
@@ -296,8 +280,9 @@ class Vector(object):
             super(Vector, self).__setattr__('_angle', deg)
             return deg
     
-    magnitude = property(_getMagnitude)
-    angle = property(_getAngle)
+    magnitude = property(_getMagnitude, doc="The length of the vector")
+    angle = property(_getAngle,
+                     doc="The angle in degrees from the positive x-axis.")
 
 # Special vectors
 i = Vector(1, 0)

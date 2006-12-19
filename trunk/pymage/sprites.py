@@ -33,10 +33,12 @@ __date__ = 'May 22, 2006'
 __all__ = ['ImageManager',
            'Sprite',
            'Animation',]
+__docformat__ = 'reStructuredText'
 
 class ImageManager(object):
     """
-    Singleton class to manage all of the sprite images.
+    Singleton class to manage all of the game's images.
+    
     As with all of the singleton classes, you must call the setup method before
     using the class.
     """
@@ -50,10 +52,11 @@ class ImageManager(object):
     def prepare(self, tag, defaultPath=None):
         """
         Declares a tag for later use.
+        
         Although you don't have to use prepare before loading an image, it is
-        recommended you do so.  loadImage will become very confused unless the
-        tags you are using are the exact path of the image (which I really don't
-        recommend).
+        recommended you do so.  `loadImage` will become very confused unless the
+        tags you are using are the exact path of the image (which I **really**
+        don't recommend).
         """
         if defaultPath is None:
             defaultPath = tag
@@ -63,9 +66,10 @@ class ImageManager(object):
     def cache(self, tag):
         """
         Caches the tag and returns the image.
-        This will be done automatically by loadImage if the cache flag is True,
-        but you may not want your users to have to have a delay when you use a
-        new resource.
+        
+        This will be done automatically by `loadImage` if the ``cache`` flag is
+        ``True``, but you may not want your users to have to have a delay when
+        you use a new resource.
         """
         if tag in self.imageCache:
             image = self.imageCache[tag]
@@ -77,7 +81,7 @@ class ImageManager(object):
     
     @classmethod
     def uncache(self, tag):
-        """Removes the image denoted by tag from the cache."""
+        """Removes the image denoted by ``tag`` from the cache."""
         try:
             del self.imageCache[tag]
         except KeyError:
@@ -87,10 +91,16 @@ class ImageManager(object):
     def loadImage(self, tag, cache=True):
         """
         Loads an image from disk, using a cached representation, if possible.
-        The cache flag specifies whether the image should be saved to the cache,
-        not whether the cache will be used.
-        This method raises a ValueError if the image cannot be loaded.
-        See also: prepare
+        
+        The ``cache`` flag specifies whether the image should be saved to the
+        cache, not whether the cache will be used.
+        
+        This method raises a ``ValueError`` if the image cannot be loaded.
+        
+        See also:
+        
+        - `prepare`
+        - `cache`
         """
         if tag in self.imageCache:
             return self.imageCache[tag]
@@ -110,11 +120,11 @@ class Sprite(pygame.sprite.Sprite, object):
     def __init__(self, image=None):
         """
         Initializes a sprite.
-        If the image parameter is omitted, the class variable image will be
-        used.
-        If the parameter it finally receives is a string, it will try to load
-        the image from the ImageManager.  If it is not in the ImageManager, it
-        assumes that it is a path or pygame.Surface.
+        
+        If the ``image`` parameter is omitted, the class variable ``image`` will
+        be used.  If the parameter it finally receives is a string, it will try
+        to load the image from the `ImageManager`.  If it is not in the
+        `ImageManager`, it assumes that it is a path or pygame.Surface.
         """
         pygame.sprite.Sprite.__init__(self)
         if image is None:
@@ -137,9 +147,10 @@ class Sprite(pygame.sprite.Sprite, object):
     
     def collideBox(self):
         """
-        Returns the box used for checking with the touches method.
-        By default, this uses the hpadding and vpadding to construct an inset
-        box.  Override to have a different collide box.
+        Returns the box used for checking with the `touches` method.
+        
+        By default, this uses the ``hpadding`` and ``vpadding`` to construct an
+        inset box.  Override to have a different collide box.
         """
         # Multiply by two to get all-around coverage
         return self.rect.inflate(self.hpadding * -2, self.vpadding * -2)
@@ -174,11 +185,12 @@ class Animation(Sprite):
     def __init__(self, frames=None, loop=None):
         """
         Initializes an animation.
-        frames is a list of pygame.Surfaces or strings.  If not specified, it
-        uses the frames class variable.
-        loop is a flag specifying whether the animation should continuously play
-        or whether it should kill itself after one play.  If not specified, it
-        uses the loop class variable.
+        
+        - ``frames`` is a list of pygame.Surfaces or strings.  If not specified,
+          it uses the ``frames`` class variable.
+        - ``loop`` is a flag specifying whether the animation should
+          continuously play or whether it should kill itself after one play.  If
+          not specified, it uses the ``loop`` class variable.
         """
         if frames is None:
             frames = self.frames
