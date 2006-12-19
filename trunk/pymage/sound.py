@@ -54,7 +54,7 @@ class MusicManager(object):
         self.playlist = []
         self.loop = loop
         self.shouldPlay = shouldPlay
-        self.volume = volume
+        self.setVolume(volume)
         self.index = 0
         self.playing = False
         pygame.mixer.music.set_endevent(self.endEvent)
@@ -146,15 +146,15 @@ class MusicManager(object):
                 self.play()
     
     @classmethod
-    def _getVolume(self):
+    def getVolume(self):
+        """Gets the current volume."""
         return self._volume
     
     @classmethod
-    def _setVolume(self, volume):
+    def setVolume(self, volume):
+        """Changes the current volume."""
         self._volume = volume
         pygame.mixer.music.set_volume(self.volume)
-    
-    volume = property(_getVolume, _setVolume, doc="Changes the volume.")
 
 class SoundManager(object):
     """
