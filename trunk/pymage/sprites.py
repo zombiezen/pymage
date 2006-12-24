@@ -30,10 +30,27 @@ from vector import Vector
 
 __author__ = 'Ross Light'
 __date__ = 'May 22, 2006'
-__all__ = ['ImageManager',
+__all__ = ['getImage',
+           'ImageManager',
            'Sprite',
            'Animation',]
 __docformat__ = 'reStructuredText'
+
+def getImage(image, tryIM=True):
+    """
+    Retrieves an image.
+    
+    Provides a standard way to either pass an image or a string to a function.
+    """
+    if isinstance(image, pygame.Surface):
+        return image
+    else:
+        if tryIM:
+            try:
+                return ImageManager.loadImage(image)
+            except ValueError:
+                pass
+        return pygame.image.load(image)
 
 class ImageManager(object):
     """
@@ -136,14 +153,7 @@ class Sprite(pygame.sprite.Sprite, object):
     
     def setImage(self, image, tryIM=True):
         """Changes the current image and the revert image variables."""
-        if tryIM and not isinstance(image, pygame.Surface):
-            try:
-                image = ImageManager.loadImage(image)
-            except ValueError:
-                pass
-        if not isinstance(image, pygame.Surface):
-            image = pygame.image.load(image).convert_alpha()
-        self.image = self._image = image
+        self.image = self._image = getImage(image, tryIM).convert_alpha()
     
     def collideBox(self):
         """
