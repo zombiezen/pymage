@@ -1,0 +1,104 @@
+=================
+ pymage Overview
+=================
+:Author: Ross Light
+:Contact: rlight2@gmail.com
+:Revision: $Revision$
+:Date: $Date$
+:Abstract: Overview of pymage package
+:Project Page: http://code.google.com/p/pymage/
+
+.. _Python: http://www.python.org/
+.. _Pygame: http://www.pygame.org/
+
+.. contents::
+
+Introduction
+------------
+
+pymage is a Python_ package for creating games with Pygame_.  Pygame_ is already
+a full-featured library in many respects, so why use another library?  However,
+pymage fulfills a different niche than Pygame_.  But why use pymage?  There are
+many programming tasks common to all games, such as resource loading.  pymage
+includes facilities for doings these tasks with a simple interface that
+encourages rapid development of games.  While pymage is not a game engine
+per-se, it does have many features that can provide the basis for a game engine.
+However, this gives pymage a bit of an advantage: it is not specific to a given
+genre of games, or even games in particular.  pymage can be used for any purpose
+that uses Pygame_ and requires some higher level features.
+
+pymage is not a replacement for Pygame_, however.  pymage is merely a library
+that sits on top of Pygame_, and you still need to learn the basics of Pygame_
+to use pymage.  The components of a program using pymage look something like
+this:
+
+.. image:: BigPicture.png
+
+Hello pymage
+------------
+
+A basic game with pymage consists of two files: the source file (``*.py``) and a
+game site file (``gamesite.xml``).  The game site file is an XML file describing
+the resources your game will use.  Here's a skeletal version of each file:
+
+* ``game.py``::
+
+    #!/usr/bin/env python
+    
+    import sys
+    
+    import pygame
+    from pygame.locals import *
+    import pymage
+    
+    class BasicState(pymage.states.State):
+        quitOnEscape = True
+        
+        def __init__(self):
+            # Call superclass implementation, using a white background
+            super(BasicState, self).__init__((255, 255, 255))
+            # Perform initialization here...
+        
+        def handle(self, event):
+            super(BasicState, self).handle(event)
+            # Handle event here...
+        
+        def update(self, game):
+            # Update game state here...
+            pass
+        
+        def firstDisplay(self, screen):
+            super(BasicState, self).firstDisplay(screen)
+            # Draw state for first time here...
+        
+        def display(self, screen):
+            screen.fill(self.bgColor)
+            # Draw state here...
+    
+    class BasicGame(pymage.states.Game):
+        screenSize = (640, 480)
+        # Uncomment to run fullscreen
+        #flags = FULLSCREEN
+        
+        def preloop(self):
+            pymage.config.setup()                       # Read gamesite.xml file
+            pygame.mouse.set_visible(False)             # Hide cursor
+            pygame.display.set_caption("Basic Game")    # Change window title
+            self.changeToState(BasicState())
+    
+    if __name__ == '__main__':
+        BasicGame(sys.argv[0]).run()
+
+* ``gamesite.xml``::
+
+    <?xml version="1.0"?>
+    
+    <!-- name is not necessary, but reserved for future use. -->
+    <game-site name="Basic Game">
+        <!-- Specify additional configuration files. -->
+        <config-file>userconfig.ini</config-file>
+    </game-site>
+
+Now you have a minimal template for a game.  This particular combination of
+files creates a game that, when run, shows a white screen that can be terminated
+by pressing the escape key.
