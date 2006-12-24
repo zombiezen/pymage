@@ -96,7 +96,11 @@ from sprites import ImageManager
 
 __author__ = 'Ross Light'
 __date__ = 'August 10, 2006'
-__all__ = ['load', 'getOption', 'setup']
+__all__ = ['load',
+           'save',
+           'getOption',
+           'setOption',
+           'setup']
 __docformat__ = 'reStructuredText'
 
 class CaseConfigParser(ConfigParser):
@@ -146,6 +150,21 @@ def load(*args, **kw):
         d[section] = sectDict
     return d
 
+def save(config, configFile):
+    """Saves a configuration dictionary to a file."""
+    close = False
+    parser = CaseConfigParser()
+    for section, values in config.iteritems():
+        for option, value in values.iteritems():
+            parser.set(section, option, value)
+    if isinstance(configFile, basestring):
+        path = os.path.normpath(os.path.expanduser(configFile))
+        configFile = open(path, 'w')
+        close = True
+    parser.write(configFile)
+    if close:
+        configFile.close()
+
 def getValue(s):
     """Retrieves a value from a ``ConfigParser`` string."""
     boolLiterals = {'false': False,
@@ -190,6 +209,11 @@ def getOption(config, section, option, default=None):
         return default
     else:
         return section.get(option, default)
+
+def setOption(config, section, option, value):
+    """Changes an option in the configuration dictionary."""
+    section = config.setdefault(section, {})
+    section[option] = value
 
 def setup(site='gamesite.xml', *configFiles):
     """
