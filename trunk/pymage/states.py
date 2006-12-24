@@ -31,6 +31,7 @@ from pygame.locals import *
 
 import sprites
 import sound
+import ui
 
 __author__ = 'Ross Light'
 __date__ = 'May 22, 2006'
@@ -40,6 +41,7 @@ __docformat__ = 'reStructuredText'
 class State(object):
     """Game state that handles events and displays on a surface."""
     bgColor = (0, 0, 0)
+    quitOnEscape = False
     
     def __init__(self, bgColor=None):
         if bgColor is not None:
@@ -53,7 +55,9 @@ class State(object):
         """
         if event.type == QUIT:
             sys.exit()
-        elif event.type == KEYDOWN and event.key == K_ESCAPE:
+        elif self.quitOnEscape and \
+             event.type == KEYDOWN and \
+             event.key == K_ESCAPE:
             sys.exit()
     
     def update(self, game):
@@ -89,6 +93,7 @@ class Paused(State):
     fontSize = 48
     textColor = (0, 0, 0)
     showCursor = False
+    excludedKeys = []
     
     def __init__(self,
                  bgColor=None,
@@ -112,8 +117,9 @@ class Paused(State):
     
     def handle(self, event):
         """Stops the pause screen after a click or key press."""
-        State.handle(self, event)
-        if event.type in (MOUSEBUTTONDOWN, KEYDOWN, JOYBUTTONDOWN):
+        super(Paused, self).handle(event)
+        if event.type in (MOUSEBUTTONUP, JOYBUTTONUP) or \
+           event.type == KEYUP and event.key not in self.excludedKeys:
             self.finished = True
     
     def update(self, game):
@@ -159,6 +165,56 @@ class Paused(State):
         """
         raise NotImplementedError("Override nextState")
 
+class Menu(State):
+    """Abstract superclass for menu screens."""
+    def __init__(self, *args, **kw):
+        super(Menu, self).__init__(*args, **kw)
+        initRect = pygame.display.get_surface().get_rect()
+        self.newState = None
+        self.container = ui.Container(bgColor=self.bgColor,
+                                      rect=initRect)
+        self.cursor = None
+        self.body()
+    
+    def body(self):
+        """
+        Adds the menu's contents.
+        
+        Override in subclasses.  The root widget is the ``container`` attribute.
+        You may set the ``cursor`` attribute to a `ui.CursorWidget`.
+        """
+        pass
+    
+    def handle(self, event):
+        super(Menu, self).handle(event)
+        self.container.processEvent(event)
+        if self.cursor is not None:
+            self.cursor.handle(event)
+    
+    def update(self, game):
+        """
+        Updates the UI widgets.
+        
+        If you change the ``newState`` attribute to a non-``None`` value, it
+        will become the new state.
+        """
+        self.container.update()
+        if self.cursor is not None:
+            self.cursor.update()
+        if self.newState is not None:
+            game.changeToState(self.newState)
+    
+    def firstDisplay(self, screen):
+        self.container.rect.size = screen.get_size()
+        super(Menu, self).firstDisplay(screen)
+    
+    def display(self, screen):
+        super(Menu, self).display(screen)
+        updates = self.container.display(screen)
+        if self.cursor is not None:
+            updates += self.cursor.display(screen)
+        pygame.display.update(updates)
+
 class Game(object):
     """Game object that manages the state machine."""
     screenSize = (800, 600)
@@ -167,9 +223,7 @@ class Game(object):
     
     def __init__(self, rootDir, **kw):
         # Change to root directory (for relative paths)
-        path = os.path.abspath(rootDir)
-        dir = os.path.split(path)[0]
-        os.chdir(dir)
+        os.chdir(os.path.abspath(os.path.dirname(rootDir)))
         # Start with no state
         self.state = self.nextState = None
         # Set up instance variables
