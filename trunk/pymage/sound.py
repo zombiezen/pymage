@@ -166,7 +166,7 @@ class MusicManager(object):
     def setVolume(self, volume):
         """Changes the current volume."""
         self._volume = volume
-        pygame.mixer.music.set_volume(self.volume)
+        pygame.mixer.music.set_volume(self._volume)
 
 class SoundManager(object):
     """
