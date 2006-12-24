@@ -30,6 +30,7 @@ __all__ = ['config',
            'sound',
            'sprites',
            'states',
+           'ui',
            'vector',]
 __docformat__ = 'reStructuredText'
 
@@ -38,4 +39,5 @@ import joystick
 import sound
 import sprites
 import states
+import ui
 import vector
