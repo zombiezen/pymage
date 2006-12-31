@@ -206,6 +206,7 @@ class Menu(State):
             self.newState = None
     
     def firstDisplay(self, screen):
+        self.container.refresh()
         self.container.rect.size = screen.get_size()
         super(Menu, self).firstDisplay(screen)
     
