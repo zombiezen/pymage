@@ -203,6 +203,7 @@ class Menu(State):
             self.cursor.update()
         if self.newState is not None:
             game.changeToState(self.newState)
+            self.newState = None
     
     def firstDisplay(self, screen):
         self.container.rect.size = screen.get_size()
