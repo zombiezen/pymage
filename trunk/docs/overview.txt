@@ -11,31 +11,35 @@
 .. _Python: http://www.python.org/
 .. _Pygame: http://www.pygame.org/
 
-.. contents::
+.. contents:: :depth: 2
 
 Introduction
 ------------
 
 pymage is a Python_ package for creating games with Pygame_.  Pygame_ is already
 a full-featured library in many respects, so why use another library?  However,
-pymage fulfills a different niche than Pygame_.  But why use pymage?  There are
+pymage fulfills a different niche than Pygame_.  But what is that?  There are
 many programming tasks common to all games, such as resource loading.  pymage
-includes facilities for doings these tasks with a simple interface that
+includes facilities for accomplishing these tasks with a simple interface that
 encourages rapid development of games.  While pymage is not a game engine
 per-se, it does have many features that can provide the basis for a game engine.
-However, this gives pymage a bit of an advantage: it is not specific to a given
-genre of games, or even games in particular.  pymage can be used for any purpose
-that uses Pygame_ and requires some higher level features.
+This gives pymage an advantage: it is not specific to a given genre of games, or
+even games in particular.  pymage can be used for any purpose that requires
+Pygame_.
 
 pymage is not a replacement for Pygame_, however.  pymage is merely a library
 that sits on top of Pygame_, and you still need to learn the basics of Pygame_
 to use pymage.  The components of a program using pymage look something like
 this:
 
-.. image:: BigPicture.png
+.. image:: graphics/BigPicture.png
+    :alt: An image showing the relationship of different game components
 
-Hello pymage
-------------
+Getting Started
+---------------
+
+Basic Setup
++++++++++++
 
 A basic game with pymage consists of two files: the source file (``*.py``) and a
 game site file (``gamesite.xml``).  The game site file is an XML file describing
@@ -69,11 +73,12 @@ the resources your game will use.  Here's a skeletal version of each file:
         
         def firstDisplay(self, screen):
             super(BasicState, self).firstDisplay(screen)
-            # Draw state for first time here...
+            # Draw state for first time here and call pygame.display.flip()
         
         def display(self, screen):
             screen.fill(self.bgColor)
             # Draw state here...
+            pygame.display.flip()
     
     class BasicGame(pymage.states.Game):
         screenSize = (640, 480)
@@ -102,3 +107,55 @@ the resources your game will use.  Here's a skeletal version of each file:
 Now you have a minimal template for a game.  This particular combination of
 files creates a game that, when run, shows a white screen that can be terminated
 by pressing the escape key.
+
+.. image:: screenshots/SkeletalGame.png
+    :alt: A screenshot of the skeletal game
+    :align: center
+    :scale: 50
+
+You can find the source code for this template in the
+`demos/template directory`_.
+
+.. _demos/template directory: ../demo/template
+
+Going Further
++++++++++++++
+
+All of this is great, but we want the program to do something, and show off the
+resource-loading capabilities of pymage.  We can modify our template to display
+an image.  We're going to use this to create a "Hello World" program.  Although
+we could use font rendering, images are more demonstrative of pymage's
+capabilities.  To do this, we need to make the following changes:
+
+* ``game.py``
+    * In the ``display`` method, replace the comment with::
+    
+        image = pymage.sprites.ImageManager.loadImage('Hello')
+        rect = pygame.Rect(0, 0, image.get_width(), image.get_height())
+        rect.center = screen.get_rect().center
+        screen.blit(image, rect)
+
+* ``gamesite.xml``
+    * Before the ``<config-file>`` element, add::
+    
+        <image id="Hello">
+            <section>images</section>
+            <option>hello</option>
+            <path>Hello.png</path>
+        </image>
+
+* ``Hello.png``
+  
+  .. image:: ../demo/hello/Hello.png
+        :alt: Hello World
+
+The result looks like this:
+
+.. image:: screenshots/HelloGame.png
+    :alt: A screenshot of the completed "Hello World" program
+    :align: center
+    :scale: 50
+
+You can find the source code in the `demos/hello directory`_.
+
+.. _demos/hello directory: ../demo/hello
