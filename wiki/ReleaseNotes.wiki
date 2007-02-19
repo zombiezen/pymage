@@ -1,5 +1,17 @@
 #summary Different releases and their changes
 
+= Version 0.1.2 =
+
+ * Added demo directory
+ * Added initial timer module
+ * Added Menu class (for UI screens)
+ * Added initial UI implementation (fairly adequate for a first implementation)
+ * Added configuration-writing functions (save & setOption)
+ * Added sprites.getImage function
+ * Added initial documentation (very incomplete)
+ * Rewrote documentation in ReST
+ * Changed volume property into methods (properties don't work on classes)
+
 = Version 0.1.1 =
 
  * Ported setup script to setuptools
@@ -8,4 +20,5 @@
 = Version 0.1.0 =
 
  * First public release
+
 
