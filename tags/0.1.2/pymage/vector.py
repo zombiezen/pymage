@@ -134,7 +134,7 @@ class Vector(object):
         x can be a scalar (scalar multiplication) or a `Vector` (dot product).
         """
         if isinstance(other, scalarClasses):    # Scalar
-            s = v._convertScalar(other)
+            s = float(other)
             return type(v)(v.x * s, v.y * s, v.z * s)
         elif isinstance(other, Vector):         # Dot Product
             u, v = v, other # For algorithm simplicity
@@ -162,7 +162,7 @@ class Vector(object):
         ``x`` can be a scalar (scalar division) or a `Vector` (dot dividend).
         """
         if isinstance(other, scalarClasses):    # Scalar
-            s = v._convertScalar(other)
+            s = float(other)
             return v.__class__(v.x / s, v.y / s, v.z / s)
         elif isinstance(other, Vector):         # Dot Product
             u, v = v, other # For algorithm simplicity
@@ -177,7 +177,7 @@ class Vector(object):
         ``x`` can be a scalar (scalar division) or a `Vector` (dot dividend).
         """
         if isinstance(other, scalarClasses):    # Scalar
-            s = v._convertScalar(other)
+            s = float(other)
             return v.__class__(v.x // s, v.y // s, v.z // s)
         elif isinstance(other, Vector):         # Dot Product
             u, v = v, other # For algorithm simplicity
