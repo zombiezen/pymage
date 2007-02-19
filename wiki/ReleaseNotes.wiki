@@ -2,6 +2,7 @@
 
 = Version 0.1.2 =
 
+ * Fixed vector multiplication/division
  * Added demo directory
  * Added initial timer module
  * Added Menu class (for UI screens)
