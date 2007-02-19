@@ -31,15 +31,37 @@ __date__ = 'August 16, 2006'
 __all__ = []
 
 if sys.version < '2.4.0':
-    print >> sys.stderr, "PyMage requires Python 2.4"
+    print >> sys.stderr, "pymage requires Python 2.4"
     sys.exit(1)
 
 setup(name="pymage",
       version='0.1.2',
       description="Pygame helper package",
+      long_description="""\
+pymage is a Python package that simplifies many aspects of Pygame programming
+(e.g. resource loading).
+
+Its features include:
+
+* File-based configuration
+* Auto-configuring joystick support
+* Music playlists
+* Vectors
+* State machine""",
+      license='LGPL',
       author="Ross Light",
       author_email='rlight2@gmail.com',
-      keywords="pymage pygame",
+      keywords="pygame SDL configuration resource",
       url='http://code.google.com/p/pymage/',
+      download_url='http://code.google.com/p/pymage/downloads/list',
+      classifiers=[
+        'Development Status :: 4 - Beta',
+        'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
+        'Natural Language :: English',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python',
+        'Topic :: Games/Entertainment',],
       test_suite='tests',
       packages=['pymage'],)
