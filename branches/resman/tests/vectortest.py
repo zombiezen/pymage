@@ -22,7 +22,7 @@
 
 __author__ = 'Ross Light'
 __date__ = 'July 26, 2006'
-__all__ = ['VectorTestCase', 'suite']
+__all__ = ['VectorTestCase', 'test_suite',]
 
 import unittest
 
@@ -98,7 +98,7 @@ class VectorTestCase(unittest.TestCase):
         self.assertAlmostEqual(self.v1.unitVector().magnitude, 1,
                                msg="Unit vectors do not have length of 1")
 
-suite = unittest.makeSuite(VectorTestCase)
+test_suite = unittest.makeSuite(VectorTestCase)
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest.main(defaultTest='test_suite')

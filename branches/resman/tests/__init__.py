@@ -24,14 +24,13 @@
 
 __author__ = 'Ross Light'
 __date__ = 'July 26, 2006'
-__all__ = ['allSuites', 'suite']
+__all__ = ['test_suite',]
 
 import unittest
 
 import vectortest
 
-allSuites = (vectortest.suite,)
-test_suite = unittest.TestSuite(allSuites)
+test_suite = unittest.TestSuite([vectortest.test_suite,])
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

@@ -23,6 +23,11 @@
 
 """setuptools script for pymage"""
 
+# Run bootstrap setuptools installer
+from ez_setup import use_setuptools
+use_setuptools()
+
+# Import modules
 from setuptools import setup
 import sys
 
@@ -30,10 +35,12 @@ __author__ = 'Ross Light'
 __date__ = 'August 16, 2006'
 __all__ = []
 
+# Check for Python 2.4
 if sys.version < '2.4.0':
     print >> sys.stderr, "pymage requires Python 2.4"
     sys.exit(1)
 
+# Call setup function
 setup(name="pymage",
       version='0.1.2',
       description="Pygame helper package",
@@ -64,4 +71,6 @@ Its features include:
         'Programming Language :: Python',
         'Topic :: Games/Entertainment',],
       test_suite='tests',
-      packages=['pymage'],)
+      packages=['pymage'],
+      install_requires=['pygame'],
+      zip_safe=True,)

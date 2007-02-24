@@ -1,6 +1,6 @@
 #!/usr/bin/env pythonw
 #
-#   sound.pyw
+#   sound.py
 #   pymage
 #
 #   Copyright (C) 2006 Ross Light
