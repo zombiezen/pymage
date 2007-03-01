@@ -34,6 +34,7 @@ class VectorTestCase(unittest.TestCase):
         self.v2 = Vector(1.125, 1.25, 3.14) # Our test 3D vector
     
     def testVectorFind(self):
+        """Vector angle/magnitude test"""
         ang, mag = 42.7, 5.7
         v = Vector.findVector(ang, mag)
         # Float math is almost always inaccurate.  So let's almost equal our
@@ -42,6 +43,7 @@ class VectorTestCase(unittest.TestCase):
         self.assertAlmostEqual(v.magnitude, mag, msg="Magnitude is incorrect")
     
     def testImmutable(self):
+        """Vector immutability test"""
         oldX = self.v1.x
         self.assertRaises(AttributeError,
                           setattr,
@@ -52,6 +54,7 @@ class VectorTestCase(unittest.TestCase):
                          "Variable changed")
     
     def testHashable(self):
+        """Vector hash test"""
         d = {self.v1: False,
              Vector(*self.v1): True}
         self.assertEqual(len(d.keys()), 1, "Invalid hashes")
@@ -61,40 +64,48 @@ class VectorTestCase(unittest.TestCase):
         self.assert_(d[self.v1], "Didn't get the proper value")
     
     def testAngle(self):
+        """Vector angle test"""
         self.assertAlmostEqual(Vector.angleBetween(i, j),
                                90,
                                msg="Perpendicular is not 90 degrees")
     
     def testIter(self):
+        """Vector iterator test"""
         self.assertEqual(list(self.v1), [self.v1.x, self.v1.y],
                          "2D vector does not give proper iterator")
         self.assertEqual(list(self.v2), [self.v2.x, self.v2.y, self.v2.z],
                          "3D vector does not give proper iterator")
     
     def testTruth(self):
+        """Vector truth value test"""
         self.assert_(not bool(Vector()), "Zero vector is True")
         self.assert_(bool(self.v1), "Nonzero vector is False")
     
     def testEquality(self):
+        """Vector equality test"""
         self.assertEqual(self.v1, Vector(*self.v1),
                          "2D vector is not equal to copy")
         self.assertEqual(self.v2, Vector(*self.v2),
                          "3D vector is not equal to copy")
     
     def testInequality(self):
+        """Vector inequality test"""
         self.assertNotEqual(self.v1, self.v2,
                             "2D vector is equal to 3D vector")
     
     def testAddSub(self):
+        """Vector addition/subtraction test"""
         self.assertEqual(self.v1 + self.v2 - self.v2, self.v1,
                          "Adding and subtracting is non-functional")
     
     def testMulDiv(self):
+        """Vector scalar multiplication/division test"""
         scalar = 3.14
         self.assertEqual(self.v1 * scalar / scalar, self.v1,
                          "Multiplying and dividing is non-functional")
     
     def testUnitVector(self):
+        """Unit vector test"""
         self.assertAlmostEqual(self.v1.unitVector().magnitude, 1,
                                msg="Unit vectors do not have length of 1")
 
