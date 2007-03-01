@@ -20,30 +20,28 @@
 #   USA
 #
 
-__author__ = 'Ross Light'
-__date__ = 'July 26, 2006'
-__all__ = ['ResourceManagerTestCase', 'test_suite',]
-
 import os
 import unittest
 
 import pygame
 from pymage.resman import *
 
+__author__ = 'Ross Light'
+__date__ = 'July 26, 2006'
+__all__ = ['ResourceManagerTestCase', 'test_suite',]
+
+resourceDirectory = os.path.join(os.path.dirname(__file__), 'data')
+
 class ResourceManagerTestCase(unittest.TestCase):
     resources = {'TestImage': ('test_img.png', ImageResource, [False]),
                  'HelloWorld': ('hello.ogg', SoundResource),}
     groupName = 'group'
-    resourceDirectory = 'data'
     
     def setUp(self):
         # Initialize pygame mixer system
         pygame.mixer.init()
         # Create resource manager
         self.resman = ResourceManager()
-        # Get resource directory
-        dataPath = os.path.join(os.path.dirname(__file__),
-                                self.resourceDirectory)
         # Add resources to manager
         for key, info in self.resources.iteritems():
             name, resType = info[:2]
@@ -55,7 +53,7 @@ class ResourceManagerTestCase(unittest.TestCase):
                 args, kw = info[2:4]
             else:
                 raise RuntimeError("Bad resource description: %r" % info)
-            resPath = os.path.join(dataPath, name)
+            resPath = os.path.join(resourceDirectory, name)
             self.resman.addResource(key, resType(resPath, *args, **kw))
         # Add group with all resources
         self.resman.addCacheGroup(self.groupName, self.resources.keys())
@@ -80,6 +78,22 @@ class ResourceManagerTestCase(unittest.TestCase):
         for key in self.resources:
             self.assert_(self.resman.getResource(key).cache is None,
                          "%r did not destroy cache" % (key,))
+    
+    def testResourcePaths(self):
+        """Resource path correctness test"""
+        for key, info in self.resources.iteritems():
+            resourcePath = self.resman.getResource(key).path
+            infoPath = os.path.join(resourceDirectory, info[0])
+            self.assertEqual(resourcePath, infoPath,
+                             "%r path %r does not match %r)" % (key,
+                                                                resourcePath,
+                                                                infoPath))
+    
+    def testRemoval(self):
+        """Resource removal test"""
+        for key in self.resources:
+            self.resman.removeResource(key)
+            self.assertRaises(KeyError, self.resman.getResource, key)
 
 test_suite = unittest.makeSuite(ResourceManagerTestCase)
 
