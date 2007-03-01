@@ -110,9 +110,9 @@ class ResourceManager(object):
         """
         self.getResource(key).createCache(force=force)
         try:
-            self.cacheCount[cacheKey] += 1
+            self.cacheCount[key] += 1
         except KeyError:
-            self.cacheCount[cacheKey] = 1
+            self.cacheCount[key] = 1
     
     def uncacheResource(self, key):
         """
@@ -122,10 +122,10 @@ class ResourceManager(object):
         uncached until all resource groups are uncached.
         """
         try:
-            self.cacheCount[cacheKey] -= 1
+            self.cacheCount[key] -= 1
         except KeyError:
-            self.cacheCount[cacheKey] = 0
-        if self.cacheCount[cacheKey] <= 0:
+            self.cacheCount[key] = 0
+        if self.cacheCount[key] <= 0:
             self.getResource(key).destroyCache()
     
     def loadResource(self, key, *args, **kw):
@@ -183,7 +183,7 @@ class ResourceManager(object):
         `Resource.createCache`.
         """
         for cacheKey in self.getCacheGroup(key):
-            self.cacheResource(key, force=force)
+            self.cacheResource(cacheKey, force=force)
     
     def uncacheGroup(self, key):
         """
@@ -193,7 +193,7 @@ class ResourceManager(object):
         depend on all of the resources being uncached.
         """
         for cacheKey in self.getCacheGroup(key):
-            self.uncacheResource(key)
+            self.uncacheResource(cacheKey)
 
 resman = ResourceManager()
 
