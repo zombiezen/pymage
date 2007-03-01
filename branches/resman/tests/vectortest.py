@@ -20,13 +20,13 @@
 #   USA
 #
 
-__author__ = 'Ross Light'
-__date__ = 'July 26, 2006'
-__all__ = ['VectorTestCase', 'test_suite',]
-
 import unittest
 
 from pymage.vector import *
+
+__author__ = 'Ross Light'
+__date__ = 'July 26, 2006'
+__all__ = ['VectorTestCase', 'test_suite',]
 
 class VectorTestCase(unittest.TestCase):
     def setUp(self):

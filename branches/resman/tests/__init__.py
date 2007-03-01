@@ -22,16 +22,16 @@
 
 """Run all tests."""
 
+import unittest
+
+import resmantest
+import vectortest
+
 __author__ = 'Ross Light'
 __date__ = 'July 26, 2006'
 __all__ = ['resmantest',
            'vectortest',
            'test_suite',]
-
-import unittest
-
-import resmantest
-import vectortest
 
 test_suite = unittest.TestSuite([resmantest.test_suite,
                                  vectortest.test_suite,])
