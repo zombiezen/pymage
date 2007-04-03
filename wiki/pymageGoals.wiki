@@ -16,10 +16,10 @@ should be oriented toward creating games.
 
  * Joystick support (stable)
  * UI Support
+ * Resource sets 
 
 = Short-Term Goals =
 
- * Resource sets
  * Fast vectors written in C
 
 = Long-Term Goals =
