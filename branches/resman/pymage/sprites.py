@@ -26,12 +26,14 @@
 import pygame
 from pygame.locals import *
 
+import resman
 from vector import Vector
 
 __author__ = 'Ross Light'
 __date__ = 'May 22, 2006'
 __all__ = ['getImage',
            'ImageManager',
+           'im',
            'Sprite',
            'Animation',]
 __docformat__ = 'reStructuredText'
@@ -47,86 +49,16 @@ def getImage(image, tryIM=True):
     else:
         if tryIM:
             try:
-                return ImageManager.loadImage(image)
+                return im.load(image)
             except ValueError:
                 pass
         return pygame.image.load(image)
 
-class ImageManager(object):
-    """
-    Singleton class to manage all of the game's images.
-    
-    As with all of the singleton classes, you must call the setup method before
-    using the class.
-    """
-    
-    @classmethod
-    def setup(self):
-        self.imagePaths = {}
-        self.imageCache = {}
-    
-    @classmethod
-    def prepare(self, tag, defaultPath=None):
-        """
-        Declares a tag for later use.
-        
-        Although you don't have to use prepare before loading an image, it is
-        recommended you do so.  `loadImage` will become very confused unless the
-        tags you are using are the exact path of the image (which I **really**
-        don't recommend).
-        """
-        if defaultPath is None:
-            defaultPath = tag
-        self.imagePaths[tag] = defaultPath
-    
-    @classmethod
-    def cache(self, tag):
-        """
-        Caches the tag and returns the image.
-        
-        This will be done automatically by `loadImage` if the ``cache`` flag is
-        ``True``, but you may not want your users to have to have a delay when
-        you use a new resource.
-        """
-        if tag in self.imageCache:
-            image = self.imageCache[tag]
-        else:
-            path = self.imagePaths.get(tag, tag)
-            image = pygame.image.load(path).convert_alpha()
-            self.imageCache[tag] = image
-        return image
-    
-    @classmethod
-    def uncache(self, tag):
-        """Removes the image denoted by ``tag`` from the cache."""
-        try:
-            del self.imageCache[tag]
-        except KeyError:
-            pass
-    
-    @classmethod
-    def loadImage(self, tag, cache=True):
-        """
-        Loads an image from disk, using a cached representation, if possible.
-        
-        The ``cache`` flag specifies whether the image should be saved to the
-        cache, not whether the cache will be used.
-        
-        This method raises a ``ValueError`` if the image cannot be loaded.
-        
-        See also:
-        
-        - `prepare`
-        - `cache`
-        """
-        if tag in self.imageCache:
-            return self.imageCache[tag]
-        else:
-            if cache:
-                return self.cache(tag)
-            else:
-                path = self.imagePaths.get(tag, tag)
-                return pygame.image.load(path).convert_alpha()
+class ImageManager(resman.Submanager):
+    """Game image manager."""
+    resourceType = resman.ImageResource
+
+im = ImageManager()
 
 class Sprite(pygame.sprite.Sprite, object):
     """Abstract superclass for sprites."""

@@ -23,6 +23,8 @@
 
 """Handles all resources"""
 
+import warnings
+
 import pygame
 
 __author__ = 'Ross Light'
@@ -33,7 +35,8 @@ __all__ = ['ResourceManager',
            'ImageResource',
            'AudioResource',
            'SoundResource',
-           'MusicResource',]
+           'MusicResource',
+           'Submanager',]
 __docformat__ = 'reStructuredText'
 
 class ResourceManager(object):
@@ -313,4 +316,66 @@ class MusicResource(AudioResource):
     
     def destroyCache(self):
         raise TypeError("Music doesn't support caching")
+
+class Submanager(object):
+    """
+    Slave resource manager.
+    
+    Submanagers load resources from a central resource manager, but only deal
+    with certain types.  They cannot modify the resources, only control their
+    loading and caching.
+    """
+    resourceType = Resource
+    
+    def __init__(self, manager=None):
+        """
+        Initializes the submanager.
+        
+        Default uses the master resource manager
+        (i.e. ``pymage.resman.resman``).
+        """
+        if manager is None:
+            manager = resman
+        self.manager = manager
+    
+    def prepare(self, tag, defaultPath=None):
+        """
+        Declares a tag for later use.
+        
+        .. Warning::
+           `prepare` is retained for compatibility reasons.  You should be using
+           `ResourceManager.addResource` to add new resources.
+        """
+        warnings.warn("prepare is deprecated; use ResourceManager.addResource.",
+                      DeprecationWarning,
+                      stacklevel=2)
+        if defaultPath is None:
+            defaultPath = tag
+        resource = self.resourceType(defaultPath)
+        self.manager.addResource(tag, resource)
+    
+    def cache(self, key, force=False):
+        """Cache the resource and return the resource's content."""
+        resource = self.manager.getResource(key)
+        if isinstance(resource, self.resourceType):
+            self.manager.cacheResource(key)
+            return self.manager.loadResource(key)
+        else:
+            raise KeyError(key)
+    
+    def uncache(self, key):
+        """Uncache the resource."""
+        resource = self.manager.getResource(key)
+        if isinstance(resource, self.resourceType):
+            self.manager.uncacheResource(key)
+        else:
+            raise KeyError(key)
+    
+    def load(self, key, *args, **kw):
+        """Retreive's a resource's content."""
+        resource = self.manager.getResource(key)
+        if isinstance(resource, self.resourceType):
+            return self.manager.loadResource(key, *args, **kw)
+        else:
+            raise KeyError(key)
     

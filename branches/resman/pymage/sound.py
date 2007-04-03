@@ -23,73 +23,92 @@
 
 """pymage sound subsystem"""
 
+import warnings
+
 import pygame
 from pygame.locals import *
+
+import resman
 
 __author__ = 'Ross Light'
 __date__ = 'July 19, 2006'
 __all__ = ['MusicManager',
-           'SoundManager',]
+           'music',
+           'SoundManager',
+           'sound',]
 __docformat__ = 'reStructuredText'
 
-class MusicManager(object):
+class MusicManager(resman.Submanager):
     """
-    Singleton class to manage the game's music.
+    Game music manager.
     
     For sound effects, use `SoundManager`.
-    
-    Before you can use this class, you need to call the `setup` method.
-    Playlists then need to be prepared with the `prepare` method, and started
-    with the `startPlaylist` method.
-    
-    Typical order of calls:
-    
-    1. setup
-    2. prepare
-    3. startPlaylist
-    4. play
     """
     endEvent = 25
     
-    @classmethod
-    def setup(self,
-              shouldPlay=True,
-              volume=0.5,
-              loop=True,):
-        self.tagPlaylists = {}
+    def __init__(self,
+                 shouldPlay=True,
+                 loop=True,
+                 *args, **kw):
+        super(MusicManager, self).__init__(*args, **kw)
+        self.savedPlaylists = {}
         self.playlist = []
         self.loop = loop
         self.shouldPlay = shouldPlay
-        self.setVolume(volume)
         self.index = 0
         self.playing = False
         pygame.mixer.music.set_endevent(self.endEvent)
     
-    @classmethod
-    def prepare(self, tag, playlist):
-        """Prepares a playlist for playback later."""
-        self.tagPlaylists[tag] = list(playlist)
+    # Playlist management
     
-    @classmethod
-    def startPlaylist(self, tag):
+    def prepare(self, tag, playlist):
         """
-        Starts a playlist denoted by ``tag``.
+        Prepares a playlist for playback later.
+        
+        .. Warning::
+           `prepare` is retained for compatibility reasons.  You should be using
+           `addPlaylist` to add new resources.
+        """
+        warnings.warn("prepare is deprecated; use addPlaylist.",
+                      DeprecationWarning,
+                      stacklevel=2)
+        self.addPlaylist(tag, playlist)
+    
+    def addPlaylist(self, key, songs):
+        """Adds a new playlist."""
+        self.savedPlaylists[key] = list(songs)
+    
+    def getPlaylist(self, key):
+        """Accesses the playlist."""
+        return self.savedPlaylists[key]
+    
+    def removePlaylist(self, key):
+        """Removes a saved playlist."""
+        del self.savedPlaylists[key]
+    
+    # Playback control
+    
+    def startPlaylist(self, key):
+        """
+        Starts a playlist denoted by ``key``.
         
         You may pass an iterable object to `startPlaylist`, and the object will
         be used as a playlist.
+        
+        After calling `startPlaylist`, the playlist is *cued*.  You then need to
+        call `play` to start playing music.
         """
         try:
-            self.playlist = self.tagPlaylists[tag]
+            self.playlist = self.getPlaylist(key)
         except KeyError:
             try:
-                self.playlist = list(tag)
+                self.playlist = list(key)
             except TypeError:
-                raise TypeError("Tag must be prepared or an iterable object")
+                raise TypeError("Playlist must be added or an iterable object")
         if self.playlist:
             self.index = 0
             self.loadSong()
     
-    @classmethod
     def play(self):
         """Starts the current song."""
         if self.shouldPlay and not self.playing:
@@ -99,7 +118,6 @@ class MusicManager(object):
                 pygame.mixer.music.play()
             self.playing = True
     
-    @classmethod
     def pause(self):
         """
         Pauses the current song.
@@ -109,14 +127,12 @@ class MusicManager(object):
         pygame.mixer.music.pause()
         self.playing = False
     
-    @classmethod
     def stop(self):
         """Stops the current song and goes to the beginning."""
         pygame.mixer.music.stop()
         self.playing = False
     
-    @classmethod
-    def loadSong(self, songFile=None):
+    def load(self, key=None):
         """
         Manually loads a song.
         
@@ -124,15 +140,16 @@ class MusicManager(object):
         This method will not load anything unless the manager is configured to
         play.
         """
-        if songFile is None:
+        if key is None:
             if self.playlist:
-                songFile = self.playlist[self.index]
+                key = self.playlist[self.index]
             else:
                 raise ValueError("No song in the playlist")
         if self.shouldPlay:
-            pygame.mixer.music.load(songFile)
+            super(MusicManager, self).load(key)
     
-    @classmethod
+    loadSong = load
+    
     def previousSong(self):
         """Returns to the previous song in the playlist."""
         if self.playlist:
@@ -142,7 +159,6 @@ class MusicManager(object):
             self.stop()
             self.loadSong()
         
-    @classmethod
     def nextSong(self):
         """Advances to the next song in the playlist."""
         if self.playlist:
@@ -157,92 +173,49 @@ class MusicManager(object):
             if playNextSong:
                 self.play()
     
-    @classmethod
-    def getVolume(self):
-        """Gets the current volume."""
-        return self._volume
+    # Volume control
     
-    @classmethod
+    def getVolume(self):
+        """
+        Gets the current volume.
+        
+        You can also use the ``volume`` property.
+        """
+        return self.volume
+    
     def setVolume(self, volume):
-        """Changes the current volume."""
-        self._volume = volume
-        pygame.mixer.music.set_volume(self._volume)
+        """
+        Changes the current volume.
+        
+        You can also use the ``volume`` property.
+        """
+        self.volume = volume
+    
+    def _getVolume(self):
+        return pygame.mixer.music.get_volume()
+    
+    def _setVolume(self, volume):
+        pygame.mixer.music.set_volume(volume)
+    
+    volume = property(_getVolume, _setVolume)
 
-class SoundManager(object):
+music = MusicManager()
+
+class SoundManager(resman.Submanager):
     """
-    Singleton class to manage sound effects.
+    Sound effects manager.
     
     For music, use `MusicManager`.
+    """
+    resourceType = resman.SoundResource
     
-    As with `MusicManager`, this is a singleton class, so use the `setup` method
-    before using it.
-    """    
-    @classmethod
-    def setup(self,
-              shouldPlay=True,
-              volume=0.5):
+    def __init__(self, shouldPlay=True, volume=0.5, *args, **kw):
+        super(SoundManager, self).__init__(*args, **kw)
         self.shouldPlay = shouldPlay
         self.volume = volume
-        self.soundPaths = {}
-        self.soundCache = {}
     
-    @classmethod
-    def prepare(self, tag, defaultPath=None):
-        """
-        Declares a tag for later use.
-        
-        Although you don't have to use `prepare` before loading a sound, it is
-        recommended you do so.  `getSound` will become very confused unless the
-        tags you are using are the exact path of the sound (which I **really**
-        don't recommend).
-        """
-        if defaultPath is None:
-            defaultPath = tag
-        self.soundPaths[tag] = defaultPath
+    getSound = resman.Submanager.load
     
-    @classmethod
-    def cache(self, tag):
-        """
-        Caches the tag and returns the sound.
-        
-        This will be done automatically by `getSound` if the ``cache`` flag is
-        ``True``, but you may not want your users to have to have a delay when
-        you use a new resource.
-        """
-        if tag in self.soundCache:
-            sound = self.soundCache[tag]
-        else:
-            path = self.soundPaths.get(tag, tag)
-            sound = pygame.mixer.Sound(path)
-            self.soundCache[tag] = sound
-        return sound
-    
-    @classmethod
-    def uncache(self, tag):
-        """Removes the sound denoted by ``tag`` from the cache."""
-        try:
-            del self.soundCache[tag]
-        except KeyError:
-            pass
-    
-    @classmethod
-    def getSound(self, tag, cache=True):
-        """
-        Retrieves a sound, using a cache if possible.
-        
-        The ``cache`` flag specifies whether the sound will be cached, not
-        whether it uses the cache.
-        """
-        if tag in self.soundCache:
-            return self.soundCache[tag]
-        else:
-            if cache:
-                return self.cache(tag)
-            else:
-                path = self.soundPaths.get(tag, tag)
-                return pygame.mixer.Sound(path)
-    
-    @classmethod
     def play(self, tag, volume=None, cache=True):
         """
         Plays a sound and returns the sound object.
@@ -254,9 +227,13 @@ class SoundManager(object):
         if volume is None:
             volume = self.volume
         if self.shouldPlay:
-            snd = self.getSound(tag, cache)
+            if cache:
+                self.cache(tag)
+            snd = self.load(tag)
             snd.set_volume(volume)
             snd.play()
             return snd
         else:
             return None
+
+sound = SoundManager()
