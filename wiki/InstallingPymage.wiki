@@ -1,0 +1,20 @@
+#summary Guide to installing pymage
+#labels Featured,Phase-Deploy
+
+= Introduction =
+
+pymage uses [http://peak.telecommunity.com/DevCenter/setuptools setuptools] for its installation, so for most users, the installation is nearly painless.
+
+= The easy_install way =
+
+If you have easy_install on your system,  run `easy_install pymage` at your shell.
+
+= The end-user way =
+
+For users of the library without easy_install, the procedure is usually the same regardless of whether you have setuptools installed.  However, if you do not have setuptools installed, the installation script will automatically install it for you (requires internet connection).
+
+To install, download one of the recent source archives (i.e. pymage-0.1.2.zip or pymage-0.1.2.tar.gz) and unpack it.  Then, change into the directory and execute `python setup.py install` at your command line prompt.
+
+= The developer's way =
+
+Check out the trunk from Subversion, and run `python setup.py develop` inside the code's root directory.
