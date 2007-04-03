@@ -80,10 +80,14 @@ class ResourceManager(object):
         
         A ``KeyError`` is raised if no resource exists with that key.
         """
-        if key in self.resources:
+        if self.hasResource(key):
             return self.resources[key]
         else:
             raise KeyError(key)
+    
+    def hasResource(self, key):
+        """Query the existence of the resource."""
+        return key in self.resources
     
     def removeResource(self, key):
         """
@@ -132,10 +136,10 @@ class ResourceManager(object):
         """
         Loads the resource with the given key.
         
-        Any additional arguments are passed to the resource's `Resource.load`
+        Any additional arguments are passed to the resource's `Resource.get`
         method.
         """
-        return self.getResource(key).load(*args, **kw)
+        return self.getResource(key).get(*args, **kw)
     
     # Cache group primitives #
     
@@ -157,10 +161,14 @@ class ResourceManager(object):
         
         A ``KeyError`` is raised if no cache group exists with that key.
         """
-        if key in self.cacheGroups:
+        if self.hasCacheGroup(key):
             return self.cacheGroups[key]
         else:
             raise KeyError(key)
+    
+    def hasCacheGroup(self, key):
+        """Query the existence of the cache group."""
+        return key in self.cacheGroups
     
     def removeCacheGroup(self, key):
         """
@@ -210,8 +218,24 @@ class Resource(object):
         The default implementation is not implemented, so it must be overridden
         in subclasses.  The return value should be something immediately usable,
         such as a ``pygame.Surface`` object.
+        
+        This is usually not called directly, instead, see the `get` method.
         """
         raise NotImplementedError()
+    
+    def get(self, *args, **kw):
+        """
+        Get the resource's content.
+        
+        The cache is returned, if it exists.  Otherwise, the resource is loaded,
+        but no cache is saved.
+        
+        Any additional arguments are passed along to the `load` method.
+        """
+        if self.hasCache():
+            return self.cache
+        else:
+            return self.load(*args, **kw)
     
     def createCache(self, *args, **kw):
         """
@@ -226,6 +250,10 @@ class Resource(object):
         force = kw.pop('force', False)
         if force or self.cache is None:
             self.cache = self.load(*args, **kw)
+    
+    def hasCache(self):
+        """Returns ``True`` if the resource has a cache."""
+        return self.cache is not None
     
     def destroyCache(self):
         """
