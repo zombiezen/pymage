@@ -11,12 +11,12 @@ should be oriented toward creating games.
  * Resource managers
  * Vectors
  * State machine
+ * Resource sets (in Subversion)
 
 = In Progress =
 
  * Joystick support (stable)
  * UI Support
- * Resource sets 
 
 = Short-Term Goals =
 
