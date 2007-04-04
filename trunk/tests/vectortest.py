@@ -35,6 +35,22 @@ class VectorTestCase(unittest.TestCase):
         self.v1 = Vector(4.2, 8.7)          # Our test 2D vector
         self.v2 = Vector(1.125, 1.25, 3.14) # Our test 3D vector
     
+    def testVectorCreation(self):
+        """Vector creation test"""
+        x, y, z = -5.7, 42, 3.14
+        vectors = {'a3k0': Vector(x, y, z),
+                   'a2k1': Vector(x, y, z=z),
+                   'a1k2': Vector(x, y=y, z=z),
+                   'a0k3': Vector(x=x, y=y, z=z),
+                   'seq': Vector((x, y, z)),
+                   'copy': Vector(Vector(x, y, z)),}
+        for key, vec in vectors.iteritems():
+            self.assertEqual(vec.x, x, msg="%s.x is incorrect" % (key))
+            self.assertEqual(vec.y, y, msg="%s.y is incorrect" % (key))
+            self.assertEqual(vec.z, z, msg="%s.z is incorrect" % (key))
+        self.assertRaises(TypeError, Vector, x, x=x)
+        self.assertRaises(TypeError, Vector, (x, y, z), x=x)
+    
     def testVectorFind(self):
         """Vector angle/magnitude test"""
         ang, mag = 42.7, 5.7
@@ -58,7 +74,7 @@ class VectorTestCase(unittest.TestCase):
     def testHashable(self):
         """Vector hash test"""
         d = {self.v1: False,
-             Vector(*self.v1): True}
+             Vector(self.v1): True}
         self.assertEqual(len(d.keys()), 1, "Invalid hashes")
         # This will test whether the other value overwrote the other.  With
         # Python, using the same key twice sets the value to last defined
@@ -85,9 +101,9 @@ class VectorTestCase(unittest.TestCase):
     
     def testEquality(self):
         """Vector equality test"""
-        self.assertEqual(self.v1, Vector(*self.v1),
+        self.assertEqual(self.v1, Vector(self.v1),
                          "2D vector is not equal to copy")
-        self.assertEqual(self.v2, Vector(*self.v2),
+        self.assertEqual(self.v2, Vector(self.v2),
                          "3D vector is not equal to copy")
     
     def testInequality(self):
