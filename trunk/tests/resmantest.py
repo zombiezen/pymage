@@ -2,7 +2,7 @@
 #
 #   resmantest.py
 #
-#   Copyright (C) 2007 Ross Light
+#   Copyright (C) 2006-2007 Ross Light
 #
 #   This library is free software; you can redistribute it and/or
 #   modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@ import pygame
 from pymage.resman import *
 
 __author__ = 'Ross Light'
-__date__ = 'July 26, 2006'
+__date__ = 'February 28, 2007'
 __all__ = ['ResourceManagerTestCase', 'test_suite',]
 
 resourceDirectory = os.path.join(os.path.dirname(__file__), 'data')

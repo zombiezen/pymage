@@ -3,9 +3,7 @@
 #   vector.py
 #   pymage
 #
-#   Created by Ross Light on 3/3/06.
-#
-#   Copyright (C) 2006 Ross Light
+#   Copyright (C) 2006-2007 Ross Light
 #
 #   This library is free software; you can redistribute it and/or
 #   modify it under the terms of the GNU Lesser General Public
