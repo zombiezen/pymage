@@ -74,11 +74,14 @@ Here is a sample gamesite.xml file::
              The path element(s) are required to find the music file(s).
              The section and option elements specify how the playlist can be
              overriden in configuration files. -->
+        <music id="song1">
+            <path>music/song1.wav</path>
+        </music>
         <playlist id="SamplePlaylist">
             <section>playlists</section>
             <option>sample</option>
-            <path>music/song1.wav</path>
-            <path>music/song2.wav</path>
+            <music ref="song1"/>
+            <path>music/song2.wav</path> <!-- Old way, still works -->
         </playlist>
         
         <!-- Specify additional configuration files. -->
@@ -89,6 +92,7 @@ Here is a sample gamesite.xml file::
 from ConfigParser import ConfigParser
 import os
 from textwrap import dedent
+import warnings
 from xml.dom import minidom
 
 import resman
@@ -96,12 +100,16 @@ import sound
 
 __author__ = 'Ross Light'
 __date__ = 'August 10, 2006'
-__all__ = ['load',
+__all__ = ['GameSiteWarning',
+           'load',
            'save',
            'getOption',
            'setOption',
            'setup']
 __docformat__ = 'reStructuredText'
+
+class GameSiteWarning(UserWarning):
+    pass
 
 class CaseConfigParser(ConfigParser):
     """A ``ConfigParser`` that is case-sensitive."""
@@ -244,14 +252,14 @@ def setup(site='gamesite.xml', *configFiles):
             path = getOption(config, section, option, path)
         resman.resman.addResource(key, cls(path))
     # Set up playlists
-    for key, (section, option, paths) in playlists.iteritems():
+    for key, (section, option, keys) in playlists.iteritems():
         if option is not None and section is not None:
             # Using specified section/option
-            configPaths = getOption(config, section, option)
-            if configPaths is not None:
-                paths = configPaths.split(os.path.pathsep)
-            del configPaths
-        sound.music.addPlaylist(key, paths)
+            configKeys = getOption(config, section, option)
+            if configKeys is not None:
+                keys = configKeys.split(',')
+            del configKeys
+        sound.music.addPlaylist(key, keys)
     # Return config dictionary
     return config
 
@@ -262,6 +270,7 @@ def _parseGameSite(f):
     configs = []
     handlers = {'image': _handlePrimitive,
                 'sound': _handlePrimitive,
+                'music': _handlePrimitive,
                 'playlist': _handlePlaylist,
                 'config-file': _handleConfigFile,}
     for child in doc.documentElement.childNodes:
@@ -277,28 +286,55 @@ def _parseGameSite(f):
 
 def _handlePrimitive(elem, **kw):
     resTypes = {'image': resman.ImageResource,
-                'sound': resman.SoundResource,}
-    key = elem.getAttribute('id')
+                'sound': resman.SoundResource,
+                'music': resman.MusicResource,}
+    pathChild = _childNamed(elem, 'path')
+    if pathChild is None:
+        warnings.warn("Primitive without a path", GameSiteWarning)
+        return
+    if elem.hasAttribute('id'):
+        key = elem.getAttribute('id')
+    else:
+        pathChild = _childNamed(elem, 'path')
+        if pathChild:
+            key = _getText(pathChild)
+        else:
+            warnings.warn("Primitive without a key", GameSiteWarning)
+            return
     kw['resources'][key] = (resTypes[elem.tagName],
                             _getText(_childNamed(elem, 'section')),
                             _getText(_childNamed(elem, 'option')),
-                            _getText(_childNamed(elem, 'path')),)
+                            _getText(pathChild),)
+    return key
 
 def _handlePlaylist(elem, **kw):
-    tag = elem.getAttribute('id')
+    key = elem.getAttribute('id')
     section = _getText(_childNamed(elem, 'section'))
     option = _getText(_childNamed(elem, 'option'))
-    paths = []
+    playlistKeys = []
     for sub in elem.childNodes:
-        if sub.nodeType == minidom.Node.ELEMENT_NODE and sub.tagName == 'path':
-            if sub.hasAttribute('id'):
-                key = sub.getAttribute('id')
-                path = _getText(sub)
-            else:
-                key = path = _getText(sub)
-            kw['resources'][key] = (resman.MusicResource, None, None, path)
-            paths.append(key)
-    kw['playlists'][tag] = (section, option, paths)
+        if sub.nodeType == minidom.Node.ELEMENT_NODE:
+            if sub.tagName == 'path':
+                # Old-school path approach
+                warnings.warn("%s using old path-based playlist" % (key),
+                              GameSiteWarning)
+                if sub.hasAttribute('id'):
+                    musicKey = sub.getAttribute('id')
+                    musicPath = _getText(sub)
+                else:
+                    musicKey = musicPath = _getText(sub)
+                kw['resources'][musicKey] = \
+                    (resman.MusicResource, None, None, musicPath)
+                playlistKeys.append(musicKey)
+            elif sub.tagName == 'music':
+                # New-school music reference/declaration approach
+                if sub.hasAttribute('ref'):
+                    musicKey = sub.getAttribute('ref')
+                else:
+                    musicKey = _handlePrimitive(sub, **kw)
+                playlistKeys.append(musicKey)
+    kw['playlists'][key] = (section, option, playlistKeys)
+    return key
 
 def _handleConfigFile(elem, **kw):
     kw['configs'].append(_getText(elem))
