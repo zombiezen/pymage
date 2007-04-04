@@ -153,7 +153,7 @@ def load(*args, **kw):
         for option in parser.options(section):
             value = parser.get(section, option)
             if convertValues:   # Interpret values
-                value = getValue(value)
+                value = _getValue(value)
             sectDict[option] = value
         d[section] = sectDict
     return d
@@ -173,7 +173,7 @@ def save(config, configFile):
     if close:
         configFile.close()
 
-def getValue(s):
+def _getValue(s):
     """Retrieves a value from a ``ConfigParser`` string."""
     boolLiterals = {'false': False,
                     'no': False,
@@ -185,12 +185,12 @@ def getValue(s):
         return int(s)
     elif s.lower() in boolLiterals: # Boolean
         return boolLiterals[s.lower()]
-    elif isFloat(s):                # Float
+    elif _isFloat(s):               # Float
         return float(s)
     else:                           # String
         return str(s)
 
-def isFloat(s):
+def _isFloat(s):
     """
     Returns whether the string is a ``float``.
     

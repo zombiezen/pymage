@@ -35,7 +35,7 @@ import ui
 
 __author__ = 'Ross Light'
 __date__ = 'May 22, 2006'
-__all__ = ['State', 'Paused', 'Game']
+__all__ = ['State', 'Paused', 'Menu', 'Game']
 __docformat__ = 'reStructuredText'
 
 class State(object):
