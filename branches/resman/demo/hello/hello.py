@@ -28,7 +28,7 @@ class HelloState(pymage.states.State):
     
     def display(self, screen):
         screen.fill(self.bgColor)
-        image = pymage.sprites.ImageManager.loadImage('Hello')
+        image = pymage.sprites.im.load('Hello')
         rect = pygame.Rect(0, 0, image.get_width(), image.get_height())
         rect.center = screen.get_rect().center
         screen.blit(image, rect)
