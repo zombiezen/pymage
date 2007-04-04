@@ -11,7 +11,11 @@ should be oriented toward creating games.
  * Resource managers
  * Vectors
  * State machine
- * Resource sets (in Subversion)
+
+= Finished In Subversion =
+
+ * Resource sets
+ * Fast vectors using [http://www.scipy.org/NumPy Numeric Python]
 
 = In Progress =
 
@@ -19,8 +23,6 @@ should be oriented toward creating games.
  * UI Support
 
 = Short-Term Goals =
-
- * Fast vectors written in C
 
 = Long-Term Goals =
 
