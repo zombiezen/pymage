@@ -114,9 +114,9 @@ by pressing the escape key.
     :scale: 50
 
 You can find the source code for this template in the
-`demos/template directory`_.
+`demo/template directory`_.
 
-.. _demos/template directory: ../demo/template
+.. _demo/template directory: ../demo/template
 
 Going Further
 +++++++++++++
@@ -130,7 +130,7 @@ capabilities.  To do this, we need to make the following changes:
 * ``game.py``
     * In the ``display`` method, replace the comment with::
     
-        image = pymage.sprites.ImageManager.loadImage('Hello')
+        image = pymage.sprites.im.load('Hello')
         rect = pygame.Rect(0, 0, image.get_width(), image.get_height())
         rect.center = screen.get_rect().center
         screen.blit(image, rect)
@@ -156,6 +156,6 @@ The result looks like this:
     :align: center
     :scale: 50
 
-You can find the source code in the `demos/hello directory`_.
+You can find the source code in the `demo/hello directory`_.
 
-.. _demos/hello directory: ../demo/hello
+.. _demo/hello directory: ../demo/hello
