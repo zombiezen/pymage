@@ -27,6 +27,7 @@ __author__ = 'Ross Light'
 __date__ = 'July 20, 2006'
 __all__ = ['config',
            'joystick',
+           'resman',
            'sound',
            'sprites',
            'states',
@@ -37,6 +38,7 @@ __docformat__ = 'reStructuredText'
 
 import config
 import joystick
+import resman
 import sound
 import sprites
 import states
