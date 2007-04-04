@@ -23,6 +23,8 @@
 
 """Defines game sprites"""
 
+import warnings
+
 import pygame
 from pygame.locals import *
 
@@ -57,6 +59,19 @@ def getImage(image, tryIM=True):
 class ImageManager(resman.Submanager):
     """Game image manager."""
     resourceType = resman.ImageResource
+
+    def loadImage(self, *args, **kw):
+        """
+        Loads an image from disk, using a cached representation, if possible.
+        
+        .. Warning::
+           `loadImage` method is deprecated, for favor of the new Submanager
+           API.  Use `load` instead.
+        """
+        warnings.warn("loadImage is deprecated; use load.",
+                      DeprecationWarning,
+                      stacklevel=2)
+        return self.load(*args, **kw)
 
 im = ImageManager()
 

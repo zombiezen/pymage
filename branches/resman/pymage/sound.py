@@ -214,7 +214,18 @@ class SoundManager(resman.Submanager):
         self.shouldPlay = shouldPlay
         self.volume = volume
     
-    getSound = resman.Submanager.load
+    def getSound(self, *args, **kw):
+        """
+        Retrieves a sound, using a cache if possible.
+
+        .. Warning::
+           `getSound` is deprecated, for favor of the Submanager API.  Use
+           `load` instead.
+        """
+        warnings.warn("getSound is deprecated; use load.",
+                      DeprecationWarning,
+                      stacklevel=2)
+        return self.load(*args, **kw)
     
     def play(self, tag, volume=None, cache=True):
         """
