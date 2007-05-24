@@ -27,15 +27,18 @@
 import unittest
 
 import resmantest
+import timertest
 import vectortest
 
 __author__ = 'Ross Light'
 __date__ = 'July 26, 2006'
 __all__ = ['resmantest',
+           'timertest',
            'vectortest',
            'test_suite',]
 
 test_suite = unittest.TestSuite([resmantest.test_suite,
+                                 timertest.test_suite,
                                  vectortest.test_suite,])
 
 if __name__ == '__main__':
