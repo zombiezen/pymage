@@ -107,11 +107,20 @@ __all__ = ['GameSiteWarning',
            'save',
            'getOption',
            'setOption',
-           'setup']
+           'registerType',
+           'unregisterType',
+           'setup',]
 __docformat__ = 'reStructuredText'
+
+# Globals
+_gsPrims = {'image': resman.ImageResource,
+            'sound': resman.SoundResource,
+            'music': resman.MusicResource,}
 
 class GameSiteWarning(UserWarning):
     pass
+
+## CONFIG PARSER ##
 
 class CaseConfigParser(ConfigParser):
     """A ``ConfigParser`` that is case-sensitive."""
@@ -225,6 +234,22 @@ def setOption(config, section, option, value):
     section = config.setdefault(section, {})
     section[option] = value
 
+## GAME SITE ##
+
+def registerType(tag, factory):
+    """
+    Register a custom game site resource type.
+    
+    The ``tag`` argument is the name of the XML element, and ``factory`` is a
+    callable that takes one argument: a path to the resource.  The ``factory``
+    is typically the constructor of a `resman.Resource` subclass.
+    """
+    _gsPrims[tag] = factory
+
+def unregisterType(tag):
+    """Unregister a custom game site resource type."""
+    del _gsPrims[tag]
+
 def setup(site='gamesite.xml', *configFiles):
     """
     Sets up a game from the specified parameters and returns the configuration
@@ -270,11 +295,10 @@ def _parseGameSite(f):
     resources = {}
     playlists = {}
     configs = []
-    handlers = {'image': _handlePrimitive,
-                'sound': _handlePrimitive,
-                'music': _handlePrimitive,
-                'playlist': _handlePlaylist,
+    handlers = {'playlist': _handlePlaylist,
                 'config-file': _handleConfigFile,}
+    for prim in _gsPrims:
+        handlers[prim] = _handlePrimitive
     for child in doc.documentElement.childNodes:
         if (child.nodeType == minidom.Node.ELEMENT_NODE and
             child.tagName in handlers):
@@ -287,9 +311,6 @@ def _parseGameSite(f):
     return resources, playlists, configs
 
 def _handlePrimitive(elem, **kw):
-    resTypes = {'image': resman.ImageResource,
-                'sound': resman.SoundResource,
-                'music': resman.MusicResource,}
     pathChild = _childNamed(elem, 'path')
     if pathChild is None:
         warnings.warn("Primitive without a path", GameSiteWarning)
@@ -303,7 +324,7 @@ def _handlePrimitive(elem, **kw):
         else:
             warnings.warn("Primitive without a key", GameSiteWarning)
             return
-    kw['resources'][key] = (resTypes[elem.tagName],
+    kw['resources'][key] = (_gsPrims[elem.tagName],
                             _getText(_childNamed(elem, 'section')),
                             _getText(_childNamed(elem, 'option')),
                             _getText(pathChild),)
