@@ -28,6 +28,11 @@
 import os
 import sys
 
+try:
+    from OpenGL.GL import *
+    from OpenGL.GLU import *
+except ImportError:
+    pass
 import pygame
 from pygame.locals import *
 
@@ -37,7 +42,7 @@ import ui
 
 __author__ = 'Ross Light'
 __date__ = 'May 22, 2006'
-__all__ = ['State', 'Paused', 'Menu', 'Game']
+__all__ = ['State', 'GLState', 'Paused', 'Menu', 'Game']
 __docformat__ = 'reStructuredText'
 
 class State(object):
@@ -82,6 +87,64 @@ class State(object):
     def display(self, screen):
         """Hook method for drawing the `State`."""
         pass
+
+class GLState(State):
+    """Game state with OpenGL-specific drawing."""
+    # Camera
+    fovy = 60.0
+    clipNear = 0.1
+    clipFar = 100.0
+    bgColor = (0.0, 0.0, 0.0, 1.0)
+    
+    def __init__(self, *args, **kw):
+        super(GLState, self).__init__(*args, **kw)
+        self.camPos = (2.0, 0.0, 0.0)
+        self.camAim = (0.0, 0.0, 0.0)
+        self.camUpv = (0.0, 5.0, 0.0)
+    
+    def initGL(self):
+        """Called on first display to initialize OpenGL."""
+        surf = pygame.display.get_surface()
+        self.setupClearColor()
+        self.setupCamera(surf.get_width(), surf.get_height())
+    
+    def setupGL(self):
+        """Called on subsequent displays to setup OpenGL."""
+        surf = pygame.display.get_surface()
+        self.setupClearColor()
+        self.setupCamera(surf.get_width(), surf.get_height())
+    
+    def setupClearColor(self):
+        r, g, b = self.bgColor[:3]
+        if len(self.bgColor) >= 4:
+            a = self.bgColor[4]
+        else:
+            a = 1.0
+        glClearColor(r, g, b, a)
+    
+    def setupCamera(self, w, h):
+        glViewport(0, 0, w, h)
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        gluPerspective(self.fovy,
+                       w / h,
+                       self.clipNear,
+                       self.clipFar)
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+        gluLookAt(self.camPos[0], self.camPos[1], self.camPos[2],
+                  self.camAim[0], self.camAim[1], self.camAim[2],
+                  self.camUpv[0], self.camUpv[1], self.camUpv[2])
+    
+    def firstDisplay(self, screen):
+        self.initGL()
+        glClear(GL_COLOR_BUFFER_BIT)
+        pygame.display.flip()
+    
+    def display(self, screen):
+        self.setupGL()
+        glClear(GL_COLOR_BUFFER_BIT)
+        pygame.display.flip()
 
 class Paused(State):
     """
