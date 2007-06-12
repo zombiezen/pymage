@@ -264,77 +264,73 @@ def setup(site='gamesite.xml', *configFiles):
     are parsed before any inside the game site file (therefore giving the site
     configuration files higher precedence).
     """
-    resources, playlists, siteConfigs = _parseGameSite(site)
+    doc = minidom.parse(site)
+    config = _getSiteConfig(doc, configFiles)
+    _processOptions(config)
+    _processGameSite(doc, config)
+    return config
+
+def _getSiteConfig(doc, configFiles):
+    siteConfigs = []
+    for child in doc.documentElement.childNodes:
+        if (child.nodeType == minidom.Node.ELEMENT_NODE and
+            child.tagName == 'config-file'):
+            siteConfigs.append(_getText(child))
     configFiles = list(configFiles) + list(siteConfigs)
-    config = load(*configFiles)
+    return load(*configFiles)
+
+def _processOptions(config):
     sound.sound.shouldPlay = bool(getOption(config, 'sound', 'play', True))
     sound.sound.volume = float(getOption(config, 'sound', 'volume', 1.0))
     sound.music.shouldPlay = bool(getOption(config, 'music', 'play', True))
     sound.music.volume = bool(getOption(config, 'music', 'volume', 0.5))
     sound.music.loop = bool(getOption(config, 'music', 'loop', True))
-    # Set up resources
-    for key, (cls, section, option, path) in resources.iteritems():
-        if section is not None and option is not None:
-            # Using specified section/option
-            path = getOption(config, section, option, path)
-        resman.resman.addResource(key, cls(path))
-    # Set up playlists
-    for key, (section, option, keys) in playlists.iteritems():
-        if option is not None and section is not None:
-            # Using specified section/option
-            configKeys = getOption(config, section, option)
-            if configKeys is not None:
-                keys = configKeys.split(',')
-            del configKeys
-        sound.music.addPlaylist(key, keys)
-    # Return config dictionary
-    return config
 
-def _parseGameSite(f):
-    doc = minidom.parse(f)
-    resources = {}
-    playlists = {}
+def _processGameSite(doc, config):
     configs = []
-    handlers = {'playlist': _handlePlaylist,
-                'config-file': _handleConfigFile,}
-    for prim in _gsPrims:
-        handlers[prim] = _handlePrimitive
+    handlers = {'playlist': _handlePlaylist,}
+    handlers.update(dict.fromkeys(_gsPrims, _handlePrimitive))
     for child in doc.documentElement.childNodes:
         if (child.nodeType == minidom.Node.ELEMENT_NODE and
             child.tagName in handlers):
             # Call handler
             handler = handlers[child.tagName]
-            handler(child,
-                    resources=resources,
-                    playlists=playlists,
-                    configs=configs,)
-    return resources, playlists, configs
+            handler(child, config)
 
-def _handlePrimitive(elem, **kw):
+def _handlePrimitive(elem, config):
+    attr = _attributes(elem, ascii=True)
     pathChild = _childNamed(elem, 'path')
     if pathChild is None:
         warnings.warn("Primitive without a path", GameSiteWarning)
         return
-    if elem.hasAttribute('id'):
-        key = elem.getAttribute('id')
-    else:
+    # Get ID
+    try:
+        key = attr.pop('id')
+    except KeyError:
         pathChild = _childNamed(elem, 'path')
         if pathChild:
             key = _getText(pathChild)
         else:
             warnings.warn("Primitive without a key", GameSiteWarning)
             return
-    kw['resources'][key] = (_gsPrims[elem.tagName],
-                            _getText(_childNamed(elem, 'section')),
-                            _getText(_childNamed(elem, 'option')),
-                            _getText(pathChild),)
+    # Get resource information
+    resType = _gsPrims[elem.tagName]
+    section = _getText(_childNamed(elem, 'section'))
+    option = _getText(_childNamed(elem, 'option'))
+    path = _getText(pathChild)
+    # Create resource
+    if section is not None and option is not None:
+        path = getOption(config, section, option, path)
+    resman.resman.addResource(key, resType(path, **attr))
+    # Return key
     return key
 
-def _handlePlaylist(elem, **kw):
+def _handlePlaylist(elem, config):
     key = elem.getAttribute('id')
     section = _getText(_childNamed(elem, 'section'))
     option = _getText(_childNamed(elem, 'option'))
     playlistKeys = []
+    # Get playlist keys
     for sub in elem.childNodes:
         if sub.nodeType == minidom.Node.ELEMENT_NODE:
             if sub.tagName == 'path':
@@ -356,11 +352,14 @@ def _handlePlaylist(elem, **kw):
                 else:
                     musicKey = _handlePrimitive(sub, **kw)
                 playlistKeys.append(musicKey)
-    kw['playlists'][key] = (section, option, playlistKeys)
+    # Create playlist
+    if section is not None and option is not None:
+        configKeys = getOption(config, section, option)
+        if configKeys is not None:
+            playlistKeys = configKeys.split(',')
+    sound.music.addPlaylist(key, playlistKeys)
+    # Return key
     return key
-
-def _handleConfigFile(elem, **kw):
-    kw['configs'].append(_getText(elem))
 
 def _getText(elem, post=True):
     xmlNS = 'http://www.w3.org/XML/1998/namespace'
@@ -387,3 +386,19 @@ def _childNamed(elem, name):
             return child
     else:
         return None
+
+def _attributes(elem, includeNS=False, ascii=False):
+    nodemap = elem.attributes
+    d = {}
+    for index in xrange(nodemap.length):
+        attr = nodemap.item(index)
+        if not includeNS and attr.prefix:
+            continue
+        name = attr.localName
+        if ascii:
+            try:
+                name = str(name)
+            except UnicodeError:
+                continue
+        d[name] = attr.value
+    return d
