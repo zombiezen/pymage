@@ -336,7 +336,7 @@ class Game(object):
         # Send events to the state
         for event in pygame.event.get():
             if event.type == sound.MusicManager.endEvent:
-                sound.MusicManager.nextSong()
+                sound.music.nextSong()
             else:
                 self.state.handle(event)
         # Update state
