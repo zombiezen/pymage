@@ -86,6 +86,14 @@ Here is a sample gamesite.xml file::
             <path>music/song2.wav</path> <!-- Old way, still works -->
         </playlist>
         
+        <!-- Prepare a cache group. -->
+        <group id="SampleGroup">
+            <section>groups</section>
+            <option>sample</option>
+            <image ref="SampleImage"/>
+            <sound ref="SampleSound"/>
+        </group>
+        
         <!-- Specify additional configuration files. -->
         <config-file>userconfig.ini</config-file>
     </game-site>
@@ -113,7 +121,8 @@ __all__ = ['GameSiteWarning',
 __docformat__ = 'reStructuredText'
 
 # Globals
-_gsPrims = {'image': resman.ImageResource,
+_gsPrims = {'resource': resman.Resource,
+            'image': resman.ImageResource,
             'sound': resman.SoundResource,
             'music': resman.MusicResource,}
 
@@ -288,7 +297,8 @@ def _processOptions(config):
 
 def _processGameSite(doc, config):
     configs = []
-    handlers = {'playlist': _handlePlaylist,}
+    handlers = {'playlist': _handlePlaylist,
+                'group': _handleGroup,}
     handlers.update(dict.fromkeys(_gsPrims, _handlePrimitive))
     for child in doc.documentElement.childNodes:
         if (child.nodeType == minidom.Node.ELEMENT_NODE and
@@ -358,6 +368,29 @@ def _handlePlaylist(elem, config):
         if configKeys is not None:
             playlistKeys = configKeys.split(',')
     sound.music.addPlaylist(key, playlistKeys)
+    # Return key
+    return key
+
+def _handleGroup(elem, config):
+    key = elem.getAttribute('id')
+    section = _getText(_childNamed(elem, 'section'))
+    option = _getText(_childNamed(elem, 'option'))
+    groupKeys = set()
+    # Get group keys
+    for sub in elem.childNodes:
+        if (sub.nodeType == minidom.Node.ELEMENT_NODE and
+            sub.tagName in _gsPrims):
+            if sub.hasAttribute('ref'):
+                resourceKey = sub.getAttribute('ref')
+            else:
+                resourceKey = _handlePrimitive(sub, **kw)
+            groupKeys.add(resourceKey)
+    # Create group
+    if section is not None and option is not None:
+        configKeys = getOption(config, section, option)
+        if configKeys is not None:
+            groupKeys = configKeys.split(',')
+    resman.resman.addCacheGroup(key, groupKeys)
     # Return key
     return key
 
