@@ -38,12 +38,12 @@ __all__ = ['config',
            'vector',]
 __docformat__ = 'reStructuredText'
 
-import config
-import joystick
-import resman
-import sound
-import sprites
-import states
-import timer
-import ui
-import vector
+from pymage import config
+from pymage import joystick
+from pymage import resman
+from pymage import sound
+from pymage import sprites
+from pymage import states
+from pymage import timer
+from pymage import ui
+from pymage import vector

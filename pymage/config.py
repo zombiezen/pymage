@@ -105,8 +105,8 @@ from textwrap import dedent
 import warnings
 from xml.dom import minidom
 
-import resman
-import sound
+from pymage import resman
+from pymage import sound
 
 __author__ = 'Ross Light'
 __date__ = 'August 10, 2006'

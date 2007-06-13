@@ -30,7 +30,7 @@ import weakref
 import pygame
 from pygame.locals import *
 
-import sprites
+from pymage import sprites
 
 __author__ = 'Ross Light'
 __date__ = 'July 20, 2006'
