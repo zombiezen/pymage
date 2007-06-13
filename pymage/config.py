@@ -259,7 +259,7 @@ def unregisterType(tag):
     """Unregister a custom game site resource type."""
     del _gsPrims[tag]
 
-def setup(site='gamesite.xml', *configFiles):
+def setup(site='gamesite.xml', *configFiles, **kw):
     """
     Sets up a game from the specified parameters and returns the configuration
     dictionary.
@@ -272,11 +272,27 @@ def setup(site='gamesite.xml', *configFiles):
     The additional arguments are program default configuration files.  These
     are parsed before any inside the game site file (therefore giving the site
     configuration files higher precedence).
+    
+    Additional keyword arguments can be specified. ``configSound`` specifies
+    whether the sound manager volume is configured, and ``configMusic``
+    specifies whether the music manager volume is configured.
     """
+    # Get keyword arguments
+    configSound = kw.pop('configSound', True)
+    configMusic = kw.pop('configMusic', True)
+    if kw:
+        raise TypeError("Invalid keyword argument")
+    # Parse game site file
     doc = minidom.parse(site)
     config = _getSiteConfig(doc, configFiles)
-    _processOptions(config)
+    # Load configuration
+    if configSound:
+        _processSoundOptions(config)
+    if configMusic:
+        _processMusicOptions(config)
+    # Process resources
     _processGameSite(doc, config)
+    # Return configuration dictionary
     return config
 
 def _getSiteConfig(doc, configFiles):
@@ -288,9 +304,11 @@ def _getSiteConfig(doc, configFiles):
     configFiles = list(configFiles) + list(siteConfigs)
     return load(*configFiles)
 
-def _processOptions(config):
+def _processSoundOptions(config):
     sound.sound.shouldPlay = bool(getOption(config, 'sound', 'play', True))
     sound.sound.volume = float(getOption(config, 'sound', 'volume', 1.0))
+
+def _processMusicOptions(config):
     sound.music.shouldPlay = bool(getOption(config, 'music', 'play', True))
     sound.music.volume = bool(getOption(config, 'music', 'volume', 0.5))
     sound.music.loop = bool(getOption(config, 'music', 'loop', True))
