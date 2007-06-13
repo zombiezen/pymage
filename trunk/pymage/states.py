@@ -293,6 +293,7 @@ class Game(object):
         os.chdir(os.path.abspath(os.path.dirname(rootDir)))
         # Start with no state
         self.state = self.nextState = None
+        self.running = False
         # Set up instance variables
         self.__dict__.update(kw)
     
@@ -312,9 +313,17 @@ class Game(object):
         self.screen = pygame.display.set_mode(self.screenSize, self.flags)
         self.clock = pygame.time.Clock()
         self.preloop()
-        while True:
-            self.iterate()
+        self.running = True
+        while self.running:
+            try:
+                self.iterate()
+            except SystemExit:
+                self.end()
         self.postloop()
+    
+    def end(self):
+        """Ends the game."""
+        self.running = False
     
     def preloop(self):
         """Hook method to do something before the event loop starts."""
