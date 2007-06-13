@@ -30,8 +30,8 @@ import warnings
 import pygame
 from pygame.locals import *
 
-import resman
-from vector import Vector
+from pymage import resman
+from pymage.vector import Vector
 
 __author__ = 'Ross Light'
 __date__ = 'May 22, 2006'

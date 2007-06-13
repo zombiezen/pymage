@@ -36,9 +36,9 @@ except ImportError:
 import pygame
 from pygame.locals import *
 
-import sprites
-import sound
-import ui
+from pymage import sprites
+from pymage import sound
+from pymage import ui
 
 __author__ = 'Ross Light'
 __date__ = 'May 22, 2006'

@@ -30,7 +30,7 @@ import warnings
 import pygame
 from pygame.locals import *
 
-import resman
+from pymage import resman
 
 __author__ = 'Ross Light'
 __date__ = 'July 19, 2006'
