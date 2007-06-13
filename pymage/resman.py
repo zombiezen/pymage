@@ -57,11 +57,14 @@ class ResourceManager(object):
     destroyed.
     """
     def __init__(self):
-        """
-        Initialize the resource manager.
-        
-        **Must** be called before anything else!
-        """
+        self.resources = {}
+        self.cacheGroups = {}
+        self.cacheCount = {}
+    
+    def cleanup(self):
+        """Manually destroy all resources."""
+        for key in self.cacheCount:
+            self.getResource(key).destroyCache()
         self.resources = {}
         self.cacheGroups = {}
         self.cacheCount = {}
