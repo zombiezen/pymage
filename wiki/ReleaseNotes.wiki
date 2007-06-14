@@ -1,5 +1,17 @@
 #summary Different releases and their changes
 
+= Version 0.2.0 =
+
+  * Added new master resource manager, which supports:
+    * New resource types
+    * Cache groups
+  * *Code that used the old sound and music managers will no longer work*, see ResourceManager
+  * Added configSound
+  * Upgraded unit tests
+  * Added fast vectors with transparent support for [http://numpy.scipy.org/ Numeric Python]
+  * Added minimal OpenGL support
+  * Added end method to Game class
+
 = Version 0.1.2 =
 
  * Fixed vector multiplication/division
@@ -21,5 +33,7 @@
 = Version 0.1.0 =
 
  * First public release
+
+
 
 
