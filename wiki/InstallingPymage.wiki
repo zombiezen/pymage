@@ -1,5 +1,5 @@
 #summary Guide to installing pymage
-#labels Featured,Phase-Deploy
+#labels Featured,Phase-Deploy,Type-Documentation
 
 = Introduction =
 
