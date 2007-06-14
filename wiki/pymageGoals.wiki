@@ -11,11 +11,10 @@ should be oriented toward creating games.
  * Resource managers
  * Vectors
  * State machine
+ * Resource sets
+ * Fast vectors using [http://numpy.scipy.org/ Numeric Python]
 
 = Finished In Subversion =
-
- * Resource sets
- * Fast vectors using [http://www.scipy.org/NumPy Numeric Python]
 
 = In Progress =
 
