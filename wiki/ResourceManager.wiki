@@ -1,5 +1,5 @@
 #summary The new unified resource manager
-#labels Phase-Implementation
+#labels Type-Documentation
 
 = Introduction =
 
