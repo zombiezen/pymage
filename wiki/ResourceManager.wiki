@@ -48,3 +48,36 @@ The compatibility implications of this are:
     * `pymage.sprites.ImageManager` > `pymage.sprites.im`
   * You _should_ add resources by adding directly to the global resource manager (but if you just used the game site file, then you don't have to worry about this)
   * You _should_ change the `get*` method calls to `load` method calls (a standard part of the `pymage.resman.Submanager` API)
+
+== Game Site File ==
+
+With the new resource manager system, the game site configuration has been updated, too.  Most game site files should continue to work, and will transparently use the new resource manager paradigm.  However, some new features have been added.
+
+=== Custom Resource Types ===
+
+You can now add custom elements to your game site file by subclassing `Resource` (see above), and registering them with the `pymage.config.registerType` function.  The function takes two arguments: the name of the custom tag and the resource class.  Any additional attributes found on the element in the game site file will be passed as keyword arguments to the class's initialization method.
+
+=== Manual Audio Configuration ===
+
+The `pymage.config.setup` function now can take two optional keyword arguments: `configSound` and `configMusic`.  These boolean arguments specify whether the music and sound volume should be automatically read from the configuration dictionary.  You could disable this to use an audio library different from SDL (OpenAL, perhaps?), or just to use different keys.
+
+=== Compatibility ===
+
+Instead of using `<path>` elements, you should use `<music>` elements with a `ref` attribute that points to a music resource (i.e. another `<music>` element).  For the specifics, see the [http://pymage.googlecode.com/files/pymage-api-0.2.0.zip API reference], but here is an excerpt from the game site file:
+
+{{{
+<!-- Prepare a playlist in the MusicManager.
+     The id attribute is used as the tag.
+     The path element(s) are required to find the music file(s).
+     The section and option elements specify how the playlist can be
+     overriden in configuration files. -->
+<music id="song1">
+    <path>music/song1.wav</path>
+</music>
+<playlist id="SamplePlaylist">
+    <section>playlists</section>
+    <option>sample</option>
+    <music ref="song1"/>
+    <path>music/song2.wav</path> <!-- Still works, but deprecated -->
+</playlist>
+}}}
