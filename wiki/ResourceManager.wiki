@@ -63,7 +63,7 @@ The `pymage.config.setup` function now can take two optional keyword arguments: 
 
 === Compatibility ===
 
-Instead of using `<path>` elements, you should use `<music>` elements with a `ref` attribute that points to a music resource (i.e. another `<music>` element).  For the specifics, see the [http://pymage.googlecode.com/files/pymage-api-0.2.0.zip API reference], but here is an excerpt from the game site file:
+Instead of using `<path>` elements, you should use `<music>` elements with a `ref` attribute that points to a music resource (i.e. another `<music>` element).  For the specifics, see the [http://code.google.com/p/pymage/downloads/detail?name=pymage-api-0.2.0.zip API reference], but here is an excerpt from the game site file:
 
 {{{
 <!-- Prepare a playlist in the MusicManager.
