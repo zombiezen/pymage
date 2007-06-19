@@ -94,6 +94,13 @@ class VectorTestCase(unittest.TestCase):
         self.assertEqual(list(self.v2), [self.v2.x, self.v2.y, self.v2.z],
                          "3D vector does not give proper iterator")
     
+    def testList(self):
+        """Vector list test"""
+        self.assertEqual(self.v1.list2D(), [self.v1.x, self.v1.y],
+                         "2D vector does not give proper list")
+        self.assertEqual(self.v2.list3D(), [self.v2.x, self.v2.y, self.v2.z],
+                         "3D vector does not give proper list")
+    
     def testTruth(self):
         """Vector truth value test"""
         self.assert_(not bool(Vector()), "Zero vector is True")
