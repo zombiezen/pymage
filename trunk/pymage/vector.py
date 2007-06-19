@@ -289,6 +289,14 @@ class Vector(object):
         yield self.y
         yield self.z
     
+    def list2D(self):
+        """Returns a list that contains only the x and y components."""
+        return [self.x, self.y]
+    
+    def list3D(self):
+        """Returns a list that contains the x, y, and z components."""
+        return [self.x, self.y, self.z]
+    
     # Comparison
     
     def __eq__(u, v):
