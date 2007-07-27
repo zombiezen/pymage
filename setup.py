@@ -44,7 +44,7 @@ if sys.version < '2.4.0':
 
 # Call setup function
 setup(name="pymage",
-      version='0.2.0',
+      version='0.2.1',
       description="Pygame helper package",
       long_description="""\
 pymage is a Python package that simplifies many aspects of Pygame programming
