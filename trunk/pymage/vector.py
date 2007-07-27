@@ -37,6 +37,7 @@ for name in ('numpy', 'Numeric'):
         pass
     else:
         break
+del name
 
 __author__ = 'Ross Light'
 __date__ = 'March 3, 2006'
@@ -141,13 +142,13 @@ class Vector(object):
         return cls(cos * magnitude, sin * magnitude)
     
     @classmethod
-    def twoPointVector(cls, p1, p2):
+    def twoPointVector(cls, point1, point2):
         """
         Finds the vector with the given points.
         
         The points can be one-, two-, or three-dimensional.
         """
-        return cls(p2) - cls(p1)
+        return cls(point2) - cls(point1)
     
     # String conversion
     
@@ -175,60 +176,74 @@ class Vector(object):
     def __pos__(self):
         return type(self)(+self.x, +self.y, +self.z)
     
-    def __add__(u, v):
-        if isinstance(v, Vector):
-            return type(u)(u.x + v.x, u.y + v.y, u.z + v.z)
+    def __add__(self, other):
+        if isinstance(other, Vector):
+            return type(self)(self.x + other.x,
+                              self.y + other.y,
+                              self.z + other.z)
         else:
             return NotImplemented
     
-    def __sub__(u, v):
-        if isinstance(v, Vector):
-            return type(u)(u.x - v.x, u.y - v.y, u.z - v.z)
+    def __sub__(self, other):
+        if isinstance(other, Vector):
+            return type(self)(self.x - other.x,
+                              self.y - other.y,
+                              self.z - other.z)
         else:
             return NotImplemented
         
-    def __mul__(v, other):
+    def __mul__(self, other):
         """
         ``v * x <==> v.__mul__(x)``
         
         x can be a scalar (scalar multiplication) or a `Vector` (dot product).
         """
         if isinstance(other, scalarTypes):      # Scalar
-            s = float(other)
-            return type(v)(v.x * s, v.y * s, v.z * s)
+            other = float(other)
+            return type(self)(self.x * other,
+                              self.y * other,
+                              self.z * other)
         elif isinstance(other, Vector):         # Dot Product
-            u, v = v, other # For algorithm simplicity
-            return u.x * v.x + u.y * v.y + u.z * v.z
+            return (self.x * other.x +
+                    self.y * other.y +
+                    self.z * other.z)
         else:
             return NotImplemented
     
-    def __rmul__(v, other):
-        return v.__mul__(other)
+    def __rmul__(self, other):
+        return self.__mul__(other)
     
-    def __div__(v, s):
+    def __div__(self, other):
         # Do true division by default, because that's what one would expect,
         # since our instance variables are floats.
-        return v.__truediv__(s)
+        return self.__truediv__(other)
         
-    def __truediv__(v, s):
-        if isinstance(s, scalarTypes):          # Scalar
-            return type(v)(v.x / s, v.y / s, v.z / s)
+    def __truediv__(self, other):
+        if isinstance(other, scalarTypes):      # Scalar
+            other = float(other)
+            return type(self)(self.x / other,
+                              self.y / other,
+                              self.z / other)
         else:
             return NotImplemented
         
-    def __floordiv__(v, s):
-        if isinstance(s, scalarTypes):          # Scalar
-            return type(v)(v.x // s, v.y // s, v.z // s)
+    def __floordiv__(self, other):
+        if isinstance(other, scalarTypes):      # Scalar
+            return type(self)(self.x // other,
+                              self.y // other,
+                              self.z // other)
         else:
             return NotImplemented
     
-    def proj(v, u):
-        """Mathematically: projv u"""
-        return (u * v / v.magnitude ** 2) * v
+    def proj(self, other):
+        """Mathematically: projv u for ``v.proj(u)``"""
+        return (other * self / self.magnitude ** 2) * self
     
-    def angleBetween(u, v):
+    def angleBetween(self, other):
         """Obtains the angle between the two vectors in degrees."""
-        return math.degrees(math.acos((u * v) / (u.magnitude * v.magnitude)))
+        radianAngle = math.acos((self * other) /
+                                (self.magnitude * other.magnitude))
+        return math.degrees(radianAngle)
     
     def unitVector(self):
         """Creates a vector in the same direction, but of magnitude 1."""
@@ -299,15 +314,19 @@ class Vector(object):
     
     # Comparison
     
-    def __eq__(u, v):
-        if isinstance(v, Vector):
-            return u.x == v.x and u.y == v.y and u.z == v.z
+    def __eq__(self, other):
+        if isinstance(other, Vector):
+            return (self.x == other.x and
+                    self.y == other.y and
+                    self.z == other.z)
         else:
             return NotImplemented
     
-    def __ne__(u, v):
-        if isinstance(v, Vector):
-            return u.x != v.x or u.y != v.y or u.z != v.z
+    def __ne__(self, other):
+        if isinstance(other, Vector):
+            return (self.x != other.x or
+                    self.y != other.y or
+                    self.z != other.z)
         else:
             return NotImplemented
     
@@ -326,7 +345,44 @@ class Vector(object):
         raise AttributeError("Vector is an immutable object")
     
     def _setattr(self, attr, value):
+        """
+        The real implementation of __setattr__.
+        
+        But don't tell anyone!  It's a *secret*.
+        """
         super(Vector, self).__setattr__(attr, value)
+    
+    @property
+    def x(self):
+        raise NotImplementedError()
+    
+    @property
+    def y(self):
+        raise NotImplementedError()
+    
+    @property
+    def z(self):
+        raise NotImplementedError()
+    
+    @property
+    def magnitude(self):
+        """The length of the vector."""
+        try:
+            return self._magnitude
+        except AttributeError:
+            mag = self._calcMagnitude()
+            self._setattr('_magnitude', mag)
+            return mag
+    
+    @property
+    def angle(self):
+        """The angle in degrees from the positive x-axis."""
+        try:
+            return self._angle
+        except AttributeError:
+            deg = self._calcAngle()
+            self._setattr('_angle', deg)
+            return deg
 
 class PythonVector(Vector):
     """Vector implemented in pure Python."""
@@ -338,28 +394,6 @@ class PythonVector(Vector):
         self._setattr('x', x)
         self._setattr('y', y)
         self._setattr('z', z)
-        
-    # Component access
-    
-    def _getMagnitude(self):
-        try:
-            return self._magnitude
-        except AttributeError:
-            mag = self._calcMagnitude()
-            self._setattr('_magnitude', mag)
-            return mag
-    
-    def _getAngle(self):
-        try:
-            return self._angle
-        except AttributeError:
-            deg = self._calcMagnitude()
-            self._setattr('_angle', deg)
-            return deg
-    
-    magnitude = property(_getMagnitude, doc="The length of the vector")
-    angle = property(_getAngle,
-                     doc="The angle in degrees from the positive x-axis.")
 
 class NumericVector(Vector):
     __slots__ = ['_array', '_magnitude', '_angle']
@@ -370,81 +404,62 @@ class NumericVector(Vector):
     
     # Operations
     
-    def __add__(u, v):
-        if isinstance(v, NumericVector):
-            return type(u)(u._array + v._array)
+    def __add__(self, other):
+        if isinstance(other, NumericVector):
+            return type(self)(self._array + other._array)
         else:
-            return super(NumericVector).__add__(u, v)
+            return super(NumericVector, self).__add__(other)
     
-    def __sub__(u, v):
-        if isinstance(v, NumericVector):
-            return type(u)(u._array - v._array)
+    def __sub__(self, other):
+        if isinstance(other, NumericVector):
+            return type(self)(self._array - other._array)
         else:
-            return super(NumericVector).__sub__(u, v)
+            return super(NumericVector, self).__sub__(other)
         
-    def __mul__(v, other):
+    def __mul__(self, other):
         if isinstance(other, scalarTypes):      # Scalar
-            s = float(other)
-            return type(v)(v._array * s)
+            return type(self)(self._array * float(other))
         elif isinstance(other, NumericVector):  # Dot Product
-            u, v = v, other # For algorithm simplicity
-            return float(numpy.dot(u._array, v._array))
+            return float(numpy.dot(self._array, other._array))
         else:
-            return super(NumericVector).__mul__(v, other)
+            return super(NumericVector, self).__mul__(other)
     
-    def __rmul__(v, other):
-        return v.__mul__(other)
+    def __rmul__(self, other):
+        if isinstance(other, scalarTypes):
+            return self.__mul__(other)
+        else:
+            return NotImplemented
     
-    def __div__(v, s):
+    def __div__(self, other):
         # Do true division by default, because that's what one would expect,
         # since our instance variables are floats.
-        return v.__truediv__(s)
+        return self.__truediv__(other)
         
-    def __truediv__(v, s):
-        if isinstance(s, scalarTypes):          # Scalar
-            return type(v)(v._array / s)
+    def __truediv__(self, other):
+        if isinstance(other, scalarTypes):      # Scalar
+            return type(self)(self._array / float(other))
         else:
-            return super(NumericVector).__truediv__(v, s)
+            return super(NumericVector, self).__truediv__(other)
         
-    def __floordiv__(v, s):
-        if isinstance(s, scalarTypes):          # Scalar
-            return type(v)(v._array / s)
+    def __floordiv__(self, other):
+        if isinstance(other, scalarTypes):      # Scalar
+            return type(self)(self._array / float(other))
         else:
-            return super(NumericVector).__floordiv__(v, s)
+            return super(NumericVector, self).__floordiv__(other)
     
     # Component access
     
-    def _getX(self):
+    @property
+    def x(self):
         return float(self._array[0])
     
-    def _getY(self):
+    @property
+    def y(self):
         return float(self._array[1])
     
-    def _getZ(self):
+    @property
+    def z(self):
         return float(self._array[2])
-    
-    def _getMagnitude(self):
-        try:
-            return self._magnitude
-        except AttributeError:
-            mag = self._calcMagnitude()
-            self._setattr('_magnitude', mag)
-            return mag
-    
-    def _getAngle(self):
-        try:
-            return self._angle
-        except AttributeError:
-            deg = self._calcAngle()
-            self._setattr('_angle', deg)
-            return deg
-    
-    x = property(_getX)
-    y = property(_getY)
-    z = property(_getZ)
-    magnitude = property(_getMagnitude, doc="The length of the vector")
-    angle = property(_getAngle,
-                     doc="The angle in degrees from the positive x-axis.")
 
 # Special vectors
 i = Vector(1, 0)

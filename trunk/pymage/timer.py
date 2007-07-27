@@ -29,10 +29,12 @@ from __future__ import division
 
 __author__ = 'Ross Light'
 __date__ = 'January 5, 2007'
-__all__ = ['Timer',]
+__all__ = ['Timer',
+           'TimerGroup',]
 __docformat__ = 'reStructuredText'
 
 class Timer(object):
+    """Timer that calls a callback after a given amout of time."""
     def __init__(self,
                  duration,
                  loop=0,
@@ -118,3 +120,37 @@ class Timer(object):
             elif self.loop > 0:
                 self.loop -= 1
         return fireCount
+
+class TimerGroup(object):
+    """A group of `Timer` objects that all update with one call."""
+    def __init__(self, timers=None):
+        if timers is None:
+            timers = []
+        self.timers = list(timers)
+    
+    def add(self, timer):
+        """Adds a timer to the group."""
+        self.timers.append(timer)
+    
+    def create(self, *args, **kw):
+        """
+        Creates a new timer and adds it to the group.
+        
+        The arguments are the same as `Timer.__init__`.
+        """
+        self.add(Timer(*args, **kw))
+    
+    def remove(self, timer):
+        """Removes a timer from the group."""
+        self.timers.remove(timer)
+    
+    def update(self, time):
+        """Updates all of the timers."""
+        for timer in self:
+            timer.update(time)
+    
+    def __len__(self):
+        return len(self.timers)
+    
+    def __iter__(self):
+        return iter(self.timers)

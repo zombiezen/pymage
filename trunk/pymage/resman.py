@@ -151,7 +151,7 @@ class ResourceManager(object):
     
     # Cache group primitives #
     
-    def addCacheGroup(self, key, resourceKeys):
+    def addCacheGroup(self, key, resource_keys):
         """
         Adds a cache group to the manager.
         
@@ -159,7 +159,7 @@ class ResourceManager(object):
         exists.
         """
         if key not in self.cacheGroups:
-            self.cacheGroups[key] = frozenset(resourceKeys)
+            self.cacheGroups[key] = frozenset(resource_keys)
         else:
             raise KeyError(key)
     
@@ -288,6 +288,7 @@ class ImageResource(Resource):
         self.alpha = alpha
     
     def load(self):
+        """Load the image."""
         img = pygame.image.load(self.path)
         if self.convert:
             if self.alpha:
@@ -304,6 +305,7 @@ class AudioResource(Resource):
 class SoundResource(AudioResource):
     """Sound resource loader."""
     def load(self):
+        """Load the sound."""
         return pygame.mixer.Sound(self.path)
 
 class MusicResource(AudioResource):
@@ -314,12 +316,15 @@ class MusicResource(AudioResource):
     pygame's music mixer.
     """
     def load(self):
+        """Load the music."""
         pygame.mixer.music.load(self.path)
     
-    def createCache(self):
+    def createCache(self, *args, **kw):
+        """Music doesn't support caching."""
         raise TypeError("Music doesn't support caching")
     
     def destroyCache(self):
+        """Music doesn't support caching."""
         raise TypeError("Music doesn't support caching")
 
 class Submanager(object):
@@ -363,7 +368,7 @@ class Submanager(object):
         """Cache the resource and return the resource's content."""
         resource = self.manager.getResource(key)
         if isinstance(resource, self.resourceType):
-            self.manager.cacheResource(key)
+            self.manager.cacheResource(key, force)
             return self.manager.loadResource(key)
         else:
             raise KeyError(key)
