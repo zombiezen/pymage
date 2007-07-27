@@ -52,7 +52,7 @@ class State(object):
     
     def __init__(self, bgColor=None):
         if bgColor is not None:
-             self.bgColor = bgColor
+            self.bgColor = bgColor
     
     def handle(self, event):
         """
@@ -115,6 +115,7 @@ class GLState(State):
         self.setupCamera(surf.get_width(), surf.get_height())
     
     def setupClearColor(self):
+        """Sets the OpenGL clear color from the ``bgColor`` attribute."""
         r, g, b = self.bgColor[:3]
         if len(self.bgColor) >= 4:
             a = self.bgColor[4]
@@ -122,12 +123,17 @@ class GLState(State):
             a = 1.0
         glClearColor(r, g, b, a)
     
-    def setupCamera(self, w, h):
-        glViewport(0, 0, w, h)
+    def setupCamera(self, width, height):
+        """
+        Sets up the OpenGL camera.
+        
+        This includes setting up the viewport, perspective, and camera position.
+        """
+        glViewport(0, 0, width, height)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         gluPerspective(self.fovy,
-                       w / h,
+                       width / height,
                        self.clipNear,
                        self.clipFar)
         glMatrixMode(GL_MODELVIEW)
@@ -137,11 +143,21 @@ class GLState(State):
                   self.camUpv[0], self.camUpv[1], self.camUpv[2])
     
     def firstDisplay(self, screen):
+        """
+        Called on first display.
+        
+        Calls `initGL`, does a ``glClear``, and flips the buffer.
+        """
         self.initGL()
         glClear(GL_COLOR_BUFFER_BIT)
         pygame.display.flip()
     
     def display(self, screen):
+        """
+        Called on displaying.
+        
+        Calls `setupGL`, does a ``glClear``, and flips the buffer.
+        """
         self.setupGL()
         glClear(GL_COLOR_BUFFER_BIT)
         pygame.display.flip()
@@ -161,12 +177,12 @@ class Paused(State):
     excludedKeys = []
     
     def __init__(self,
-                 bgColor=None,
+                 bg_color=None,
                  text=None,
                  image=None,
                  fontSize=None,
                  useIM=None):
-        super(Paused, self).__init__(bgColor)
+        super(Paused, self).__init__(bg_color)
         # Set up text
         if text is not None:
             self.text = text
@@ -188,11 +204,13 @@ class Paused(State):
             self.finished = True
     
     def update(self, game):
+        """Changes to the next state, if we're done."""
         if self.finished:
             pygame.mouse.set_visible(False)
             game.changeToState(self.nextState())
     
     def firstDisplay(self, screen):
+        """Do actual display."""
         screen.fill(self.bgColor)   # Clear screen
         font = pygame.font.Font(None, self.fontSize)
         lines = self.text.strip().splitlines()
@@ -251,6 +269,7 @@ class Menu(State):
         pass
     
     def handle(self, event):
+        """Dispatches a UI event."""
         super(Menu, self).handle(event)
         self.container.processEvent(event)
         if self.cursor is not None:
@@ -271,11 +290,13 @@ class Menu(State):
             self.newState = None
     
     def firstDisplay(self, screen):
+        """Sets up the container."""
         self.container.refresh()
         self.container.rect.size = screen.get_size()
         super(Menu, self).firstDisplay(screen)
     
     def display(self, screen):
+        """Redisplays any of the widgets that need it."""
         super(Menu, self).display(screen)
         updates = self.container.display(screen)
         if self.cursor is not None:
@@ -288,12 +309,14 @@ class Game(object):
     ticks = 60
     flags = 0
     
-    def __init__(self, rootDir, **kw):
+    def __init__(self, root_dir, **kw):
         # Change to root directory (for relative paths)
-        os.chdir(os.path.abspath(os.path.dirname(rootDir)))
+        os.chdir(os.path.abspath(os.path.dirname(root_dir)))
         # Start with no state
         self.state = self.nextState = None
         self.running = False
+        self.screen = None
+        self.clock = None
         # Set up instance variables
         self.__dict__.update(kw)
     

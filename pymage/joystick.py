@@ -42,9 +42,7 @@ class Axis(object):
     always within the -1.0 to 1.0 range.  Otherwise, the only calculation
     performed is inversion.
     """
-    perfMin = -1.0
-    perfMid = 0.0
-    perfMax = 1.0
+    perfectRange = (-1.0, 0.0, 1.0)
     perfect = False
     
     def __init__(self, joy, num, invert=False, perfect=None):
@@ -56,7 +54,7 @@ class Axis(object):
             self.min, self.max = 0.0, 0.0
             self.offset, self.scale = 0.0, 1.0
     
-    def addEntry(self, n):
+    def addEntry(self, value):
         """
         If the axis is in perfect mode, calibrate the axis from the information
         given.
@@ -64,16 +62,17 @@ class Axis(object):
         You shouldn't need to use this, instead, use `sample`.
         """
         if self.perfect:
-            if n > self.max:
-                self.max = n
-            elif n < self.min:
-                self.min = n
+            perfectMin, perfectMid, perfectMax = self.perfectRange
+            if value > self.max:
+                self.max = value
+            elif value < self.min:
+                self.min = value
             else:
                 return
             # Do cached calculations
-            mid = self.min + (self.max - self.min) / 2
-            self.offset = self.perfMid - mid
-            self.scale = (self.perfMax - self.perfMin) / (self.max - self.min)
+            mid = (self.max + self.min) / 2
+            self.offset = perfectMid - mid
+            self.scale = (perfectMax - perfectMin) / (self.max - self.min)
     
     def sample(self):
         """
@@ -86,19 +85,19 @@ class Axis(object):
         joy = pygame.joystick.Joystick(self.joy)
         self.addEntry(joy.get_axis(self.num))
     
-    def convert(self, rawValue):
+    def convert(self, raw_value):
         """
         Converts a raw value from the joystick.
         
         You shouldn't need to use this, instead, use `get`.
         """
         if self.perfect:
-            val = (rawValue + self.offset) * self.scale
+            value = (raw_value + self.offset) * self.scale
         else:
-            val = rawValue
+            value = raw_value
         if self.invert:
-            val = -val
-        return val
+            value = -value
+        return value
     
     def get(self):
         """

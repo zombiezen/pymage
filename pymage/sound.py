@@ -49,14 +49,14 @@ class MusicManager(resman.Submanager):
     endEvent = 25
     
     def __init__(self,
-                 shouldPlay=True,
+                 should_play=True,
                  loop=True,
                  *args, **kw):
         super(MusicManager, self).__init__(*args, **kw)
         self.savedPlaylists = {}
         self.playlist = []
         self.loop = loop
-        self.shouldPlay = shouldPlay
+        self.shouldPlay = should_play
         self.index = 0
         self.playing = False
         pygame.mixer.music.set_endevent(self.endEvent)
@@ -194,12 +194,14 @@ class MusicManager(resman.Submanager):
         self.volume = volume
     
     def _getVolume(self):
+        """Retrieves the mixer's current volume."""
         return pygame.mixer.music.get_volume()
     
     def _setVolume(self, volume):
+        """Changes the mixer's current volume."""
         pygame.mixer.music.set_volume(volume)
     
-    volume = property(_getVolume, _setVolume)
+    volume = property(_getVolume, _setVolume, doc="The mixer's volume")
 
 music = MusicManager()
 
@@ -211,9 +213,9 @@ class SoundManager(resman.Submanager):
     """
     resourceType = resman.SoundResource
     
-    def __init__(self, shouldPlay=True, volume=0.5, *args, **kw):
+    def __init__(self, should_play=True, volume=0.5, *args, **kw):
         super(SoundManager, self).__init__(*args, **kw)
-        self.shouldPlay = shouldPlay
+        self.shouldPlay = should_play
         self.volume = volume
     
     def getSound(self, *args, **kw):

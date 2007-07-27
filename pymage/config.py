@@ -127,6 +127,7 @@ _gsPrims = {'resource': resman.Resource,
             'music': resman.MusicResource,}
 
 class GameSiteWarning(UserWarning):
+    """Warning emitted when odd game site constructs are used."""
     pass
 
 ## CONFIG PARSER ##
@@ -134,6 +135,7 @@ class GameSiteWarning(UserWarning):
 class CaseConfigParser(ConfigParser):
     """A ``ConfigParser`` that is case-sensitive."""
     def optionxform(self, optstr):
+        """Return the string in the same case."""
         return optstr
 
 def load(*args, **kw):
@@ -153,30 +155,30 @@ def load(*args, **kw):
         pass
     # Parse the files
     parser = CaseConfigParser(kw)
-    for f in args:
+    for configFile in args:
         close = False
-        if isinstance(f, basestring):
+        if isinstance(configFile, basestring):
             # Open strings as paths
-            path = os.path.normpath(os.path.expanduser(f))
+            path = os.path.normpath(os.path.expanduser(configFile))
             if os.path.exists(path):
-                f = open(path)
+                configFile = open(path)
             else:
                 continue
             close = True
-        parser.readfp(f)
+        parser.readfp(configFile)
         if close:
-            f.close()
+            configFile.close()
     # Assemble dictionary
-    d = {}
+    configDict = {}
     for section in parser.sections():
-        sectDict = {}
+        sectionDict = {}
         for option in parser.options(section):
             value = parser.get(section, option)
             if convertValues:   # Interpret values
                 value = _getValue(value)
-            sectDict[option] = value
-        d[section] = sectDict
-    return d
+            sectionDict[option] = value
+        configDict[section] = sectionDict
+    return configDict
 
 def save(config, configFile):
     """Saves a configuration dictionary to a file."""
@@ -193,7 +195,7 @@ def save(config, configFile):
     if close:
         configFile.close()
 
-def _getValue(s):
+def _getValue(value_string):
     """Retrieves a value from a ``ConfigParser`` string."""
     boolLiterals = {'false': False,
                     'no': False,
@@ -201,16 +203,20 @@ def _getValue(s):
                     'true': True,
                     'yes': True,
                     'on': True,}
-    if s.isdigit():                 # Integer
-        return int(s)
-    elif s.lower() in boolLiterals: # Boolean
-        return boolLiterals[s.lower()]
-    elif _isFloat(s):               # Float
-        return float(s)
-    else:                           # String
-        return str(s)
+    if value_string.isdigit():
+        # Integer
+        return int(value_string)
+    elif value_string.lower() in boolLiterals:
+        # Boolean
+        return boolLiterals[value_string.lower()]
+    elif _isFloat(value_string):
+        # Float
+        return float(value_string)
+    else:
+        # String
+        return str(value_string)
 
-def _isFloat(s):
+def _isFloat(value_string):
     """
     Returns whether the string is a ``float``.
     
@@ -218,11 +224,14 @@ def _isFloat(s):
     
         int[.[fraction]]
     """
-    if s.isdigit():         # int
+    if value_string.isdigit():
+        # int
         return True
-    if s.count('.') == 1:
-        s = s.replace('.', '')
-        if s.isdigit():     # int[.[fraction]]
+    elif value_string.count('.') == 1:
+        # has a decimal point
+        value_string = value_string.replace('.', '')
+        if value_string.isdigit():
+            # int[.[fraction]]
             return True
         else:
             return False
@@ -259,7 +268,7 @@ def unregisterType(tag):
     """Unregister a custom game site resource type."""
     del _gsPrims[tag]
 
-def setup(site='gamesite.xml', *configFiles, **kw):
+def setup(site='gamesite.xml', *config_files, **kw):
     """
     Sets up a game from the specified parameters and returns the configuration
     dictionary.
@@ -284,7 +293,7 @@ def setup(site='gamesite.xml', *configFiles, **kw):
         raise TypeError("Invalid keyword argument")
     # Parse game site file
     doc = minidom.parse(site)
-    config = _getSiteConfig(doc, configFiles)
+    config = _getSiteConfig(doc, config_files)
     # Load configuration
     if configSound:
         _processSoundOptions(config)
@@ -295,26 +304,34 @@ def setup(site='gamesite.xml', *configFiles, **kw):
     # Return configuration dictionary
     return config
 
-def _getSiteConfig(doc, configFiles):
+def _getSiteConfig(doc, config_files):
+    """
+    Find the full list of configuration files.
+    
+    The configuration files passed in are put first in the list, so the ones
+    specified in the game site file take precedence.
+    """
     siteConfigs = []
     for child in doc.documentElement.childNodes:
         if (child.nodeType == minidom.Node.ELEMENT_NODE and
             child.tagName == 'config-file'):
             siteConfigs.append(_getText(child))
-    configFiles = list(configFiles) + list(siteConfigs)
-    return load(*configFiles)
+    config_files = list(config_files) + list(siteConfigs)
+    return load(*config_files)
 
 def _processSoundOptions(config):
+    """Configure the sound manager with the default configuration keys."""
     sound.sound.shouldPlay = bool(getOption(config, 'sound', 'play', True))
     sound.sound.volume = float(getOption(config, 'sound', 'volume', 1.0))
 
 def _processMusicOptions(config):
+    """Configure the music manager with the default configuration keys."""
     sound.music.shouldPlay = bool(getOption(config, 'music', 'play', True))
     sound.music.volume = bool(getOption(config, 'music', 'volume', 0.5))
     sound.music.loop = bool(getOption(config, 'music', 'loop', True))
 
 def _processGameSite(doc, config):
-    configs = []
+    """Run through game site file and pull out resources."""
     handlers = {'playlist': _handlePlaylist,
                 'group': _handleGroup,}
     handlers.update(dict.fromkeys(_gsPrims, _handlePrimitive))
@@ -326,7 +343,10 @@ def _processGameSite(doc, config):
             handler(child, config)
 
 def _handlePrimitive(elem, config):
-    attr = _attributes(elem, ascii=True)
+    """
+    Handle a basic resource (i.e. images, sound effects, and custom resources).
+    """
+    attr = _attributes(elem, include_ns=False, ascii=True)
     pathChild = _childNamed(elem, 'path')
     if pathChild is None:
         warnings.warn("Primitive without a path", GameSiteWarning)
@@ -354,6 +374,7 @@ def _handlePrimitive(elem, config):
     return key
 
 def _handlePlaylist(elem, config):
+    """Handle a playlist element."""
     key = elem.getAttribute('id')
     section = _getText(_childNamed(elem, 'section'))
     option = _getText(_childNamed(elem, 'option'))
@@ -370,15 +391,14 @@ def _handlePlaylist(elem, config):
                     musicPath = _getText(sub)
                 else:
                     musicKey = musicPath = _getText(sub)
-                kw['resources'][musicKey] = \
-                    (resman.MusicResource, None, None, musicPath)
+                resman.addResource(musicKey, resman.MusicResource(musicPath))
                 playlistKeys.append(musicKey)
             elif sub.tagName == 'music':
                 # New-school music reference/declaration approach
                 if sub.hasAttribute('ref'):
                     musicKey = sub.getAttribute('ref')
                 else:
-                    musicKey = _handlePrimitive(sub, **kw)
+                    musicKey = _handlePrimitive(sub, config)
                 playlistKeys.append(musicKey)
     # Create playlist
     if section is not None and option is not None:
@@ -390,6 +410,7 @@ def _handlePlaylist(elem, config):
     return key
 
 def _handleGroup(elem, config):
+    """Handle a group element (a cache group)."""
     key = elem.getAttribute('id')
     section = _getText(_childNamed(elem, 'section'))
     option = _getText(_childNamed(elem, 'option'))
@@ -401,7 +422,7 @@ def _handleGroup(elem, config):
             if sub.hasAttribute('ref'):
                 resourceKey = sub.getAttribute('ref')
             else:
-                resourceKey = _handlePrimitive(sub, **kw)
+                resourceKey = _handlePrimitive(sub, config)
             groupKeys.add(resourceKey)
     # Create group
     if section is not None and option is not None:
@@ -413,6 +434,13 @@ def _handleGroup(elem, config):
     return key
 
 def _getText(elem, post=True):
+    """
+    Retrieve text from a DOM node, stripping indents, if asked.
+    
+    This function does honor the ``xml:space`` attribute, and if
+    ``xml:space="preserve"`` is specified, it takes precendence over the
+    ``post`` argument.
+    """
     xmlNS = 'http://www.w3.org/XML/1998/namespace'
     if elem is None:
         return None
@@ -431,6 +459,7 @@ def _getText(elem, post=True):
     return text
 
 def _childNamed(elem, name):
+    """Returns the first child with the given name, or ``None`` if not found."""
     for child in elem.childNodes:
         if (child.nodeType == minidom.Node.ELEMENT_NODE and
             child.tagName == name):
@@ -438,12 +467,19 @@ def _childNamed(elem, name):
     else:
         return None
 
-def _attributes(elem, includeNS=False, ascii=False):
+def _attributes(elem, include_ns=True, ascii=False):
+    """
+    Retrieves the attributes of a DOM node as a dictionary.
+    
+    If ``include_ns`` is ``True``, then attributes with a namespace will be
+    discarded.  If ``ascii`` is ``True``, then the attribute names are converted
+    to ASCII, but if they are unable to do so, the attribute is discarded.
+    """
     nodemap = elem.attributes
-    d = {}
+    attrDict = {}
     for index in xrange(nodemap.length):
         attr = nodemap.item(index)
-        if not includeNS and attr.prefix:
+        if not include_ns and attr.prefix:
             continue
         name = attr.localName
         if ascii:
@@ -451,5 +487,5 @@ def _attributes(elem, includeNS=False, ascii=False):
                 name = str(name)
             except UnicodeError:
                 continue
-        d[name] = attr.value
-    return d
+        attrDict[name] = attr.value
+    return attrDict

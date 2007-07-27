@@ -31,7 +31,6 @@ import pygame
 from pygame.locals import *
 
 from pymage import resman
-from pymage.vector import Vector
 
 __author__ = 'Ross Light'
 __date__ = 'May 22, 2006'
@@ -120,10 +119,10 @@ class Sprite(pygame.sprite.Sprite, object):
         """
         return self.collideBox().colliderect(other.collideBox())
     
-    def updateWithVector(self, v, clamp=None):
+    def updateWithVector(self, vector, clamp=None):
         """Moves the sprite with the given vector."""
-        self.rect.x += v.x
-        self.rect.y += v.y
+        self.rect.x += vector.x
+        self.rect.y += vector.y
         if clamp is None:
             clamp = self.clamp
         if clamp:
@@ -160,6 +159,11 @@ class Animation(Sprite):
         super(Animation, self).__init__(frames[0])
     
     def update(self):
+        """
+        Updates the sprite.
+        
+        Default implementation advances to the next frame.
+        """
         self.advance()
     
     def advance(self):

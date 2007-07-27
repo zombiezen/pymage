@@ -55,6 +55,7 @@ center_align = 1
 right_align = 2
 
 class Widget(object):
+    """Base class for all UI components."""
     def __init__(self,
                  parent=None,
                  rect=Rect(0, 0, 0, 0),
@@ -98,7 +99,7 @@ class Widget(object):
         """Returns a list of all children."""
         return list(self.__children)
     
-    def childTree(self, includeSelf=False, topdown=True):
+    def childTree(self, include_self=False, topdown=True):
         """
         Returns an iterator descending the entire child tree.
         
@@ -108,14 +109,14 @@ class Widget(object):
         ``topdown`` is a flag specifying whether to go from widget to bottom
         or bottom to widget.
         """
-        if includeSelf and topdown:
+        if include_self and topdown:
             yield self
         for child in self.__children:
-            tree = child.childTree(includeSelf=True,
+            tree = child.childTree(include_self=True,
                                    topdown=topdown)
             for subchild in tree:
                 yield subchild
-        if includeSelf and not topdown:
+        if include_self and not topdown:
             yield self
     
     def addChild(self, child):
@@ -142,6 +143,7 @@ class Widget(object):
             del child.parent
     
     def _getParent(self):
+        """Retrieves the widget's parent."""
         if self.__parent is None:
             return None
         else:
@@ -150,18 +152,20 @@ class Widget(object):
                 self.__parent = None
             return parent
     
-    def _setParent(self, newParent):
+    def _setParent(self, new_parent):
+        """Changes the widget's parent, and removes it from the old one."""
         # Remove self from old parent
         self._delParent()
         # Add self to new parent
-        if newParent is None:
-            self.__parent = newParent
+        if new_parent is None:
+            self.__parent = new_parent
         else:
-            if self not in newParent.children():
-                newParent.addChild(self)
-            self.__parent = weakref.ref(newParent)
+            if self not in new_parent.children():
+                new_parent.addChild(self)
+            self.__parent = weakref.ref(new_parent)
     
     def _delParent(self):
+        """Remove the widget from its parent."""
         try:
             if self.__parent is not None:
                 parent = self.__parent()
@@ -171,7 +175,9 @@ class Widget(object):
             pass
         self.__parent = None
     
-    def _getRoot(self):
+    @property
+    def root(self):
+        """The root of the hierarchy."""
         widget = self
         while True:
             parent = widget.parent
@@ -181,7 +187,6 @@ class Widget(object):
         return widget
     
     parent = property(_getParent, _setParent, _delParent)
-    root = property(_getRoot)
     
     # Event management
     
@@ -236,7 +241,7 @@ class Widget(object):
         """
         return False
     
-    def focus(self, forceBlur=False, forceFocus=False):
+    def focus(self, force_blur=False, force_focus=False):
         """
         Makes the widget the active one.
         
@@ -245,9 +250,9 @@ class Widget(object):
         You may extend this implementation to perform custom handling, but
         always call this implementation to actually focus the widget.
         """
-        if forceFocus or self.canFocus():
+        if force_focus or self.canFocus():
             activeWidget = self.root.activeWidget()
-            if activeWidget is None or activeWidget.blur(force=forceBlur):
+            if activeWidget is None or activeWidget.blur(force=force_blur):
                 self.__active = True
                 return True
             else:
@@ -496,7 +501,7 @@ class Widget(object):
             if anchor is not None:
                 setattr(self.rect, anchor, anchorValue)
     
-    def rectChanged(self, oldRect, newRect):
+    def rectChanged(self, old_rect, new_rect):
         """
         Hook method for the rectangle changing.
         
@@ -507,21 +512,22 @@ class Widget(object):
     def _getRect(self):
         return self.__rect
     
-    def _setRect(self, newRect):
-        self.__rect = Rect(newRect)
+    def _setRect(self, new_rect):
+        self.__rect = Rect(new_rect)
     
     rect = property(_getRect, _setRect)
 
 class Container(Widget):
+    """A widget that is designed to contain other widgets."""
     def __init__(self,
                  border=0,
-                 borderColor=(0, 0, 0, 255),
-                 bgColor=(0, 0, 0, 0),
+                 border_color=(0, 0, 0, 255),
+                 bg_color=(0, 0, 0, 0),
                  *args, **kw):
         super(Container, self).__init__(*args, **kw)
         self.border = border
-        self.borderColor = borderColor
-        self.bgColor = bgColor
+        self.borderColor = border_color
+        self.bgColor = bg_color
     
     def draw(self, surface, rect):
         surface.fill(self.bgColor, rect)
@@ -541,6 +547,7 @@ class Container(Widget):
             return None
 
 class TextWidget(Widget):
+    """A widget that can display a single line of text."""
     fgColor = (0, 0, 0, 255)
     bgColor = (0, 0, 0, 0)
     antialias = True
@@ -605,23 +612,29 @@ class TextWidget(Widget):
         return self.font.size(self.text)
     
     def _getText(self):
+        """Retrieve text value."""
         return self._text
     
     def _setText(self, text):
+        """Change text value and refresh."""
         self._text = text
         self.refresh()
     
     def _getFont(self):
+        """Retrieve font."""
         return self._font
     
     def _setFont(self, font):
+        """Change font and refresh."""
         self._font = font
         self.refresh()
     
     def _getAlign(self):
+        """Retrieve alignment."""
         return self._align
     
     def _setAlign(self, align):
+        """Change alignment and validate."""
         if align in (left_align, center_align, right_align):
             self._align = align
         else:
@@ -632,6 +645,7 @@ class TextWidget(Widget):
     align = property(_getAlign, _setAlign)
 
 class ImageWidget(Widget):
+    """A widget that displays an image."""
     def __init__(self, image, stretch=False, *args, **kw):
         super(ImageWidget, self).__init__(*args, **kw)
         self.image = image
@@ -668,6 +682,7 @@ class ImageWidget(Widget):
     image = property(getImage, setImage)
 
 class CursorWidget(ImageWidget):
+    """A widget that displays an image, following the cursor."""
     def __init__(self, hotspot=(0, 0), *args, **kw):
         super(CursorWidget, self).__init__(*args, **kw)
         self.hotspot = hotspot
@@ -797,16 +812,16 @@ class Button(Widget):
         else:
             return False
     
-    def setState(self, newState):
+    def setState(self, new_state):
         try:
             oldState = self.state
         except AttributeError:
             pass
         else:
-            if oldState == newState:
+            if oldState == new_state:
                 return
             oldState.unsetState(self)
-        self.state = newState
+        self.state = new_state
         self.state.setState(self)
     
     def perform(self):
@@ -818,7 +833,7 @@ class Button(Widget):
         """Sizes the button to the optimum size."""
         return self.state.optimalSize()
     
-    def rectChanged(self, oldRect, newRect):
+    def rectChanged(self, old_rect, new_rect):
         self.state.unsetState(self)
         self.state.setState(self)
     
