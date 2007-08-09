@@ -25,6 +25,8 @@
 
 """Manages game states (e.g. paused, levels...)"""
 
+from __future__ import division
+
 import os
 import sys
 
@@ -42,8 +44,14 @@ from pymage import ui
 
 __author__ = 'Ross Light'
 __date__ = 'May 22, 2006'
-__all__ = ['State', 'GLState', 'Paused', 'Menu', 'Game']
 __docformat__ = 'reStructuredText'
+__all__ = ['State',
+           'GLState',
+           'Paused',
+           'Menu',
+           'Game',
+           'FakeClock',
+           'TwistedGame',]
 
 class State(object):
     """Game state that handles events and displays on a surface."""
@@ -367,7 +375,7 @@ class Game(object):
             self.state.firstDisplay(self.screen)
         # Send events to the state
         for event in pygame.event.get():
-            if event.type == sound.MusicManager.endEvent:
+            if event.type == sound.music.endEvent:
                 sound.music.nextSong()
             else:
                 self.state.handle(event)
@@ -379,3 +387,106 @@ class Game(object):
     def postloop(self):
         """Hook method to do something after the event loop exits."""
         pass
+
+class FakeClock(object):
+    """
+    Imitator of ``pygame.time.Clock`` that doesn't delay.
+    
+    Used for `TwistedGame`.
+    """
+    def __init__(self):
+        self.time = pygame.time.get_ticks()
+        self.delta = 0
+        self.delay = 0
+    
+    def get_fps(self):
+        """Returns the current rate of frames per second."""
+        return 1 / self.get_time()
+    
+    def get_rawtime(self):
+        """
+        Returns number of nondelayed milliseconds between last two calls to
+        `tick`.
+        """
+        return self.delta
+    
+    def get_delay(self):
+        """
+        Returns number of delayed milliseconds between last two calls to `tick`.
+        """
+        return self.delay
+    
+    def get_time(self):
+        """
+        Returns number of milliseconds between last two calls to `tick`.
+        """
+        return self.get_rawtime() + self.get_delay()
+    
+    def tick(self, ticks=None):
+        """
+        Keep running at a given framerate.
+        
+        :Returns: The time since the last call to `tick` in milliseconds.
+        :ReturnType: int
+        """
+        newTime = pygame.time.get_ticks()
+        self.delta = newTime - self.time
+        self.time = newTime
+        if ticks:
+            assert ticks > 0
+            self.delay = int(max((1 / ticks) * 1000 - self.delta, 0))
+        else:
+            self.delay = 0
+        return self.delta
+
+class TwistedGame(Game):
+    """
+    Game object that uses a Twisted_ reactor for the main event loop.
+    
+    .. _Twisted: http://twistedmatrix.com/
+    """
+    def __init__(self, root_dir, reactor=None, **kw):
+        """
+        Initialize game object.
+        
+        If ``reactor`` is not specified, then the default Twisted_ reactor is
+        used.
+        """
+        super(TwistedGame, self).__init__(root_dir, **kw)
+        if reactor is None:
+            from twisted.internet import reactor
+        self.reactor = reactor
+    
+    def run(self):
+        """
+        Run the game.
+        
+        This sets up a `FakeClock` object and starts the reactor.
+        """
+        # Do usual initialization
+        pygame.init()
+        self.screen = pygame.display.set_mode(self.screenSize, self.flags)
+        self.clock = FakeClock()
+        self.preloop()
+        self.running = True
+        # Iterate will tell the reactor to keep calling it
+        self.iterate()
+        self.reactor.run()
+        # Do post loop
+        self.postloop()
+    
+    def end(self):
+        """Stops the game and reactor."""
+        super(TwistedGame, self).end()
+        self.reactor.stop()
+    
+    def iterate(self):
+        """
+        Runs an iteration of the event loop, then tells the reactor to iterate
+        again.
+        """
+        try:
+            super(TwistedGame, self).iterate()
+            self.reactor.callLater(self.clock.get_delay() / 1000, self.iterate)
+        except SystemExit:
+            self.end()
