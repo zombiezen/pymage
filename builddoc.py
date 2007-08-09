@@ -139,7 +139,7 @@ try:
     writer.write(outputDir)
     # Make archives
     print "Creating Tar-Gzip archive..."
-    create_tgz(outputDir, outputDir + os.path.extsep + 'tgz')
+    create_tgz(outputDir, (os.path.extsep).join([outputDir, 'tar', 'gz']))
     print "Creating Zip archive..."
     create_zip(outputDir, outputDir + os.path.extsep + 'zip')
 except ProgramError, e:
