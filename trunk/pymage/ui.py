@@ -23,7 +23,30 @@
 #   USA
 #
 
-"""Game user interface"""
+"""
+Game user interface based on widget objects
+
+There are three types of coordinate systems when dealing with widgets:
+
+Screen coordinates
+    Absolute coordinates
+
+Local coordinates
+    Coordinates relative to the origin of the containing widget.  If the
+    widget has no parent, then this is the same as screen coordinates.
+
+Bounds coordinates
+    Coordinates relative to the origin of the widget.  If the origin of the
+    widget is (0, 0), then this is the same as local coordinates.
+
+:Variables:
+    left_align : int
+        Left alignment constant for `TextWidget`
+    center_align : int
+        Center alignment constant for `TextWidget`
+    right_align : int
+        Right alignment constant for `TextWidget`
+"""
 
 import weakref
 
@@ -55,11 +78,30 @@ center_align = 1
 right_align = 2
 
 class Widget(object):
-    """Base class for all UI components."""
+    """
+    Base class for all UI components.
+    
+    :IVariables:
+        rect : ``pygame.Rect``
+            The widget's rectangle in local coordinates.
+        parent : `Widget`
+            The parent widget.
+    """
     def __init__(self,
                  parent=None,
                  rect=Rect(0, 0, 0, 0),
                  cache=False):
+        """
+        Initialize the widget.
+        
+        :Parameters:
+            parent : `Widget`
+                Parent widget
+            rect : ``pygame.Rect``
+                Initial button size and position
+            cache : bool
+                Whether to cache the button
+        """
         self.__oldRect = None
         self.rect = rect
         self.__children = set()
@@ -96,18 +138,24 @@ class Widget(object):
         return iter(self.__children)
     
     def children(self):
-        """Returns a list of all children."""
+        """
+        Returns a list of all children.
+        
+        :ReturnType: list
+        """
         return list(self.__children)
     
     def childTree(self, include_self=False, topdown=True):
         """
         Returns an iterator descending the entire child tree.
         
-        ``includeSelf`` is a flag specifying whether the widget is included in
-        the iterator.
-        
-        ``topdown`` is a flag specifying whether to go from widget to bottom
-        or bottom to widget.
+        :Parameters:
+            include_self : bool
+                Specifies whether the widget is included in the iterator.
+            topdown : bool
+                Specifies whether to go from widget to bottom or from bottom to
+                widget.
+        :ReturnType: iterator
         """
         if include_self and topdown:
             yield self
@@ -120,18 +168,36 @@ class Widget(object):
             yield self
     
     def addChild(self, child):
-        """Adds a child widget."""
+        """
+        Adds a child widget.
+        
+        :Parameters:
+            child : `Widget`
+                New child to add
+        """
         self.__children.add(child)
         child.parent = self
     
     def addChildren(self, children):
-        """Adds children widgets."""
+        """
+        Adds children widgets.
+        
+        :Parameters:
+            child : list of `Widget` objects
+                New children to add
+        """
         self.__children.update(frozenset(children))
         for child in children:
             child.parent = self
     
     def removeChild(self, child):
-        """Removes a child widget."""
+        """
+        Removes a child widget.
+        
+        :Parameters:
+            child : `Widget`
+                Child to remove
+        """
         self.__children.remove(child)
         del child.parent
     
@@ -194,16 +260,21 @@ class Widget(object):
         """
         Handles a single event.
         
-        Override to perform custom event-handling.  Return ``True`` if the event
-        was handled successfully.
+        Override to perform custom event-handling.  Default implementation
+        returns ``False``.
+        
+        :Parameters:
+            event : ``pygame.event.Event``
+                The event to handle.
+        :Returns: ``True`` if the event was handled successfully, ``False``
+                  otherwise.
+        :ReturnType: bool
         """
         return False
     
     def processEvent(self, event):
         """
-        Processes an event.
-        
-        The return value is whether the event was processed successfully.
+        Process an event.
         
         The event will start at a certain widget and traverse up the child
         hierarchy until the event is handled or the root is reached.  The
@@ -212,8 +283,14 @@ class Widget(object):
         * If the event is a mouse event, the widget that the mouse is/was over.
         * Otherwise, the active widget.
         
-        Do not override this method to perform event handling; instead, override
-        the `handle` method.
+        .. Note:: Do not override this method to perform event handling;
+                  instead, override the `handle` method.
+        
+        :Parameters:
+            event : ``pygame.event.Event``
+                The event to process.
+        :Returns: Whether the event was processed successfully.
+        :ReturnType: bool
         """
         if event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION):
             tree = self.root.childTree(includeSelf=True,
@@ -238,6 +315,8 @@ class Widget(object):
         Returns whether the widget can be focused.
         
         Default returns ``False``.
+        
+        :ReturnType: bool
         """
         return False
     
@@ -245,10 +324,12 @@ class Widget(object):
         """
         Makes the widget the active one.
         
-        Returns whether the focus was successful.
+        .. Tip:: You may extend this implementation to perform custom handling,
+                 but always call this implementation to actually focus the
+                 widget.
         
-        You may extend this implementation to perform custom handling, but
-        always call this implementation to actually focus the widget.
+        :Returns: Wheter the focus was successful.
+        :ReturnType: bool
         """
         if force_focus or self.canFocus():
             activeWidget = self.root.activeWidget()
@@ -265,6 +346,8 @@ class Widget(object):
         Returns whether the widget can be blurred.
         
         Default returns ``True``.
+        
+        :ReturnType: bool
         """
         return True
     
@@ -272,10 +355,12 @@ class Widget(object):
         """
         Makes the widget inactive.
         
-        Returns whether the blur was successful.
+        .. Tip:: You may extend this implementation to perform custom handling,
+                 but always call this implementation to actually blur the
+                 widget.
         
-        You may extend this implementation to perform custom handling, but
-        always call this implementation to actually blur the widget.
+        :Returns: Whether the blur was successful.
+        :ReturnType: bool
         """
         if force or self.canBlur():
             self.__active = False
@@ -285,9 +370,12 @@ class Widget(object):
     
     def activeWidget(self):
         """
-        Returns the current active widget, or ``None`` if there is not one.
+        Find the current active widget.
         
-        Be mindful that this only traverses from the receiver down.
+        .. Caution:: This only traverses from the receiver down.
+        
+        :Returns: The current active widget, or ``None`` if there is not one.
+        :ReturnType: `Widget`
         """
         for child in self.childTree(includeSelf=True):
             if child.isActive():
@@ -296,7 +384,11 @@ class Widget(object):
             return None
     
     def isActive(self):
-        """Returns whether the widget is active."""
+        """
+        Returns whether the widget is active.
+        
+        :ReturnType: bool
+        """
         return self.__active
     
     # Displaying
@@ -305,15 +397,19 @@ class Widget(object):
         """
         Display the widget on the given surface.
         
-        The return value is a list of Rects that need to be updated.
+        .. Note:: You *shouldn't* have to override this method.  Instead, you
+                  should override the `draw` method.
         
-        If no ``surface`` is given, the current display surface is used.
-        
-        If no ``origin`` is given, (0, 0) is used.  The origin should be in
-        local space.
-        
-        You *shouldn't* have to override this method.  Instead, you should
-        override the draw method.
+        :Parameters:
+            surface : ``pygame.Surface``
+                The surface to display on.  If this is not specified, the
+                current display surface is used.
+            origin : tuple
+                The point in local space to use as the origin.  If not given,
+                (0, 0) is used.
+        :Returns: A list of ``pygame.Rect`` objects that need to be
+                  updated
+        :ReturnType: list of ``pygame.Rect`` objects
         """
         screenUpdates = []
         if surface is None:
@@ -358,6 +454,13 @@ class Widget(object):
         Performs the actual drawing.
         
         Default implementation clears the surface to a transparent color.
+        
+        :Parameters:
+            surface : ``pygame.Surface``
+                Surface to draw onto.
+            rect : ``pygame.Rect``
+                Portion of the widget that needs to be refreshed.  This is only
+                a guideline; you can update wherever you want.
         """
         surface.fill((0, 0, 0, 0), rect)
     
@@ -365,7 +468,10 @@ class Widget(object):
         """
         Inform the widget that a given portion needs to be refreshed.
         
-        If no rect is given, the entire widget will be refreshed.
+        :Parameters:
+            rect : ``pygame.Rect``
+                The portion of the widget, in local space, that needs to be
+                refreshed.  If not given, the entire widget will be refreshed.
         """
         if rect is None:
             rect = Rect(0, 0, self.rect.width, self.rect.height)
@@ -385,68 +491,188 @@ class Widget(object):
     # Coordinates
     
     def stlrect(self, rect, origin=(0, 0)):
-        """Converts from a screen rectangle to a local rectangle."""
+        """
+        Converts from a screen rectangle to a local rectangle.
+        
+        :Parameters:
+            rect : ``pygame.Rect``
+                Rectangle to convert
+            origin : tuple
+                The point to consider the origin; default is (0, 0).
+        :Returns: The converted rectangle
+        :ReturnType: ``pygame.Rect``
+        """
         rect = Rect(rect)
         origin = self._localOrigin(origin)
         return rect.move(-origin[0], -origin[1])
     
     def stbrect(self, rect, origin=(0, 0)):
-        """Converts from a screen rectangle to a bounds rectangle."""
+        """
+        Converts from a screen rectangle to a bounds rectangle.
+        
+        :Parameters:
+            rect : ``pygame.Rect``
+                Rectangle to convert
+            origin : tuple
+                The point to consider the origin; default is (0, 0).
+        :Returns: The converted rectangle
+        :ReturnType: ``pygame.Rect``
+        """
         rect = Rect(rect)
         origin = self._boundsOrigin(origin)
         return rect.move(-origin[0], -origin[1])
     
     def ltsrect(self, rect, origin=(0, 0)):
-        """Converts from a local rectangle to a screen rectangle."""
+        """
+        Converts from a local rectangle to a screen rectangle.
+        
+        :Parameters:
+            rect : ``pygame.Rect``
+                Rectangle to convert
+            origin : tuple
+                The point to consider the origin; default is (0, 0).
+        :Returns: The converted rectangle
+        :ReturnType: ``pygame.Rect``
+        """
         rect = Rect(rect)
         origin = self._localOrigin(origin)
         return rect.move(origin[0], origin[1])
     
     def ltbrect(self, rect, origin=(0, 0)):
-        """Converts from a local rectangle to a bounds rectangle."""
+        """
+        Converts from a local rectangle to a bounds rectangle.
+        
+        :Parameters:
+            rect : ``pygame.Rect``
+                Rectangle to convert
+            origin : tuple
+                The point to consider the origin; default is (0, 0).
+        :Returns: The converted rectangle
+        :ReturnType: ``pygame.Rect``
+        """
         rect = Rect(rect)
         origin = self.rect.topleft
         return rect.move(-origin[0], -origin[1])
     
     def btsrect(self, rect, origin=(0, 0)):
-        """Converts from a bounds rectangle to a screen rectangle."""
+        """
+        Converts from a bounds rectangle to a screen rectangle.
+        
+        :Parameters:
+            rect : ``pygame.Rect``
+                Rectangle to convert
+            origin : tuple
+                The point to consider the origin; default is (0, 0).
+        :Returns: The converted rectangle
+        :ReturnType: ``pygame.Rect``
+        """
         rect = Rect(rect)
         origin = self._boundsOrigin(origin)
         return rect.move(origin[0], origin[1])
     
     def btlrect(self, rect, origin=(0, 0)):
-        """Converts from a bounds rectangle to a screen rectangle."""
+        """
+        Converts from a bounds rectangle to a screen rectangle.
+        
+        :Parameters:
+            rect : ``pygame.Rect``
+                Rectangle to convert
+            origin : tuple
+                The point to consider the origin; default is (0, 0).
+        :Returns: The converted rectangle
+        :ReturnType: ``pygame.Rect``
+        """
         rect = Rect(rect)
         origin = self.rect.topleft
         return rect.move(origin[0], origin[1])
     
     def stlpoint(self, point, origin=(0, 0)):
-        """Converts from a screen point to a local point."""
+        """
+        Converts from a screen point to a local point.
+        
+        :Parameters:
+            point : tuple
+                Point to convert
+            origin : tuple
+                The point to consider the origin; default is (0, 0).
+        :Returns: The converted point
+        :ReturnType: tuple
+        """
         origin = self._localOrigin(origin)
         return (point[0] - origin[0], point[1] - origin[1])
     
     def stbpoint(self, point, origin=(0, 0)):
-        """Converts from a screen point to a bounds point."""
+        """
+        Converts from a screen point to a bounds point.
+        
+        :Parameters:
+            point : tuple
+                Point to convert
+            origin : tuple
+                The point to consider the origin; default is (0, 0).
+        :Returns: The converted point
+        :ReturnType: tuple
+        """
         origin = self._boundsOrigin(origin)
         return (point[0] - origin[0], point[1] - origin[1])
     
     def ltspoint(self, point, origin=(0, 0)):
-        """Converts from a local point to a screen point."""
+        """
+        Converts from a local point to a screen point.
+        
+        :Parameters:
+            point : tuple
+                Point to convert
+            origin : tuple
+                The point to consider the origin; default is (0, 0).
+        :Returns: The converted point
+        :ReturnType: tuple
+        """
         origin = self._localOrigin(origin)
         return (point[0] + origin[0], point[1] + origin[1])
     
     def ltbpoint(self, point, origin=(0, 0)):
-        """Converts from a local point to a bounds point."""
+        """
+        Converts from a local point to a bounds point.
+        
+        :Parameters:
+            point : tuple
+                Point to convert
+            origin : tuple
+                The point to consider the origin; default is (0, 0).
+        :Returns: The converted point
+        :ReturnType: tuple
+        """
         origin = self.rect.topleft
         return (point[0] - origin[0], point[1] - origin[1])
     
     def btspoint(self, point, origin=(0, 0)):
-        """Converts from a bounds point to a screen point."""
+        """
+        Converts from a bounds point to a screen point.
+        
+        :Parameters:
+            point : tuple
+                Point to convert
+            origin : tuple
+                The point to consider the origin; default is (0, 0).
+        :Returns: The converted point
+        :ReturnType: tuple
+        """
         origin = self._boundsOrigin(origin)
         return (point[0] + origin[0], point[1] + origin[1])
     
     def btlpoint(self, point, origin=(0, 0)):
-        """Converts from a bounds point to a local point."""
+        """
+        Converts from a bounds point to a local point.
+        
+        :Parameters:
+            point : tuple
+                Point to convert
+            origin : tuple
+                The point to consider the origin; default is (0, 0).
+        :Returns: The converted point
+        :ReturnType: tuple
+        """
         origin = self.rect.topleft
         return (point[0] + origin[0], point[1] + origin[1])
     
@@ -460,7 +686,15 @@ class Widget(object):
         return self.screenRect(origin).topleft
     
     def screenRect(self, origin=(0, 0)):
-        """Calculates the screen rectangle."""
+        """
+        Calculates the screen rectangle.
+        
+        :Parameters:
+            origin : tuple
+                The point to consider the origin; default is (0, 0).
+        :Returns: The widget's rectangle in screen coordinates
+        :ReturnType: ``pygame.Rect``
+        """
         rect = Rect(self.rect)
         parent = self.parent
         while parent is not None:
@@ -470,7 +704,11 @@ class Widget(object):
         return rect
     
     def bounds(self):
-        """Returns the rectangle that can be drawn in."""
+        """
+        Returns the rectangle that can be drawn in.
+        
+        :ReturnType: ``pygame.Rect``
+        """
         return Rect(0, 0, self.rect.width, self.rect.height)
     
     # Dynamic sizing
@@ -479,7 +717,11 @@ class Widget(object):
         """
         Returns the optimal size of the widget.
         
-        Default returns ``None``, but subclasses can override to return a value.
+        Default returns ``None``, but subclasses can override to return an
+        actual value.
+        
+        :Returns: The optimal size, or ``None`` if one cannot be calculated.
+        :ReturnType: tuple
         """
         return None
     
@@ -489,9 +731,12 @@ class Widget(object):
         
         If `optimalSize` returns None, this does nothing.
         
-        ``anchor`` is a string specifying a corner/edge attribute name that will
-        remain constant after the resize.  For best results, specify a corner
-        (e.g. topleft).
+        .. Tip:: For best results, specify a corner (e.g. topleft) for anchor.
+        
+        :Parameters:
+            anchor : string
+                A corner/edge attribute name that will remain constant after the
+                resize.
         """
         if anchor is not None:
             anchorValue = getattr(self.rect, anchor)
@@ -506,6 +751,12 @@ class Widget(object):
         Hook method for the rectangle changing.
         
         This is called before `display` does any drawing.
+        
+        :Parameters:
+            old_rect : ``pygame.Rect``
+                The old rectangle in local coordinates
+            new_rect : ``pygame.Rect``
+                The new rectangle in local coordinates
         """
         pass
     
@@ -518,7 +769,17 @@ class Widget(object):
     rect = property(_getRect, _setRect)
 
 class Container(Widget):
-    """A widget that is designed to contain other widgets."""
+    """
+    A widget that is designed to contain other widgets.
+    
+    :IVariables:
+        border : int
+            The border width (in pixels).
+        borderColor : tuple
+            The border color as an RGBA 0-255 tuple
+        bgColor : tuple
+            The background color as an RGBA 0-255 tuple
+    """
     def __init__(self,
                  border=0,
                  border_color=(0, 0, 0, 255),
@@ -547,7 +808,30 @@ class Container(Widget):
             return None
 
 class TextWidget(Widget):
-    """A widget that can display a single line of text."""
+    """
+    A widget that can display a single line of text.
+    
+    :IVariables:
+        text : string
+            The text the widget displays.
+        font : ``pygame.font.Font``
+            The font the text is displayed as.  Default is the pygame default
+            font at size 14.
+        fgColor : tuple
+            The text color as an RGBA 0-255 tuple.  Default is black.
+        bgColor : tuple
+            The background color as an RGBA 0-255 tuple.  Default is clear.
+        antialias : bool
+            Whether or not to antialias the text.  Default is ``True``.
+        align : int
+            The alignment as a constant (i.e. `left_align`, `center_align`, or
+            `right_align`).  The default is left alignment.
+        shadow : bool
+            Whether or not to add a *cheap* shadow.  Default is ``False``.
+        shadowColor : tuple
+            The shadow color as an RGBA 0-255 tuple.  Default is a
+            half-transparent black.
+    """
     fgColor = (0, 0, 0, 255)
     bgColor = (0, 0, 0, 0)
     antialias = True
@@ -558,15 +842,7 @@ class TextWidget(Widget):
         """
         Initializes a text widget.
         
-        Three additional parameters can be specified via keyword arguments:
-        
-        - ``fgColor``: The color of the rendered text.  Default is black.
-        - ``bgColor``: The background color of the text.  Default is clear.
-        - ``antialias``: Whether to antialias.  Default is ``True``.
-        - ``align``: How to align the text.  Default is `left_align`.
-        - ``shadow``: Whether the text has a drop shadow.  Default is ``False``.
-        - ``shadowColor``: The drop shadow's color.  Default is a
-          half-transparent black.
+        The additional variables can be specified via keyword arguments.
         """
         # Get keyword options
         self.fgColor = kw.pop('fgColor', self.fgColor)
@@ -645,7 +921,15 @@ class TextWidget(Widget):
     align = property(_getAlign, _setAlign)
 
 class ImageWidget(Widget):
-    """A widget that displays an image."""
+    """
+    A widget that displays an image.
+    
+    :IVariables:
+        image : ``pygame.Surface``
+            The image the widget displays.
+        stretch : bool
+            Whether to stretch the image to fit the size.
+    """
     def __init__(self, image, stretch=False, *args, **kw):
         super(ImageWidget, self).__init__(*args, **kw)
         self.image = image
@@ -682,7 +966,14 @@ class ImageWidget(Widget):
     image = property(getImage, setImage)
 
 class CursorWidget(ImageWidget):
-    """A widget that displays an image, following the cursor."""
+    """
+    A widget that displays an image, following the cursor.
+    
+    :IVariables:
+        hotspot : tuple
+            The location of the cursor's "hotspot".  When the mouse is clicked,
+            the hotspot is the place where the mouse position is registered.
+    """
     def __init__(self, hotspot=(0, 0), *args, **kw):
         super(CursorWidget, self).__init__(*args, **kw)
         self.hotspot = hotspot
@@ -696,7 +987,14 @@ class CursorWidget(ImageWidget):
             return False
     
     def followMouse(self, pos=None):
-        """Called to follow the mouse."""
+        """
+        Called to follow the mouse.
+        
+        :Parameters:
+            pos : tuple
+                The position where the mouse is.  If not given, the position is
+                retrieved with ``pygame.mouse.get_pos``.
+        """
         if pos is None:
             pos = pygame.mouse.get_pos()
         self.rect.topleft = self.stlpoint((pos[0] - self.hotspot[0],
@@ -705,11 +1003,23 @@ class CursorWidget(ImageWidget):
 class ButtonState(object):
     """A button state."""
     def setState(self, button):
-        """Called to change the button into the given state."""
+        """
+        Called to change the button into the given state.
+        
+        :Parameters:
+            button : `Button`
+                The button whose state is changing.
+        """
         pass
     
     def unsetState(self, button):
-        """Called to undo the effects of `setState`."""
+        """
+        Called to undo the effects of `setState`.
+        
+        :Parameters:
+            button : `Button`
+                The button whose state is being undone.
+        """
         pass
     
     def optimalSize(self):
@@ -721,6 +1031,18 @@ class StretchState(ButtonState):
     A button state in which three images are used.
     
     Two are used for caps, and the center is stretched to fit the text.
+    
+    :IVariables:
+        text : string
+            The text being displayed on the button.
+        textColor : tuple
+            The text color as an RGBA 0-255 tuple.
+        imgL : ``pygame.Surface``
+            The left image cap.
+        imgC : ``pygame.Surface``
+            The stretched center image.
+        imgR : ``pygame.Surface``
+            The right image cap.
     """
     def __init__(self, text, textColor, imgL, imgC, imgR):
         self.text = text
@@ -776,13 +1098,61 @@ class StretchState(ButtonState):
         return (width, height)
 
 class Button(Widget):
-    """Abstract superclass for buttons."""
+    """
+    Abstract superclass for buttons.
+    
+    :IVariables:
+        state : `ButtonState`
+            The button's current state
+        callback : function
+            The button's action callback
+        callArgs : tuple
+            Additional arguments passed to the button's callback
+        callKw : dict
+            Additional keyword arguments passed to the button's callback
+        nav_up : `Widget`
+            The widget activated by pressing the up arrow key.
+        nav_down : `Widget`
+            The widget activated by pressing the down arrow key.
+        nav_left : `Widget`
+            The widget activated by pressing the left arrow key.
+        nav_right : `Widget`
+            The widget activated by pressing the right arrow key.
+    """
     def __init__(self,
                  state,
                  callback=None,
                  args=[],
                  kw={},
                  *initArgs, **initKw):
+        """
+        Initializes the button.
+        
+        :Parameters:
+            state : `ButtonState`
+                Initial button state.
+            callback : function
+                Button's action callback
+            args : tuple
+                Additional callback arguments
+            kw : dict
+                Additional callback keyword arguments
+            parent : `Widget`
+                Parent widget
+            rect : ``pygame.Rect``
+                Initial button size and position
+            cache : bool
+                Whether to cache the button
+        :Keywords:
+            up : `Widget`
+                The widget activated by pressing the up arrow key.
+            down : `Widget`
+                The widget activated by pressing the down arrow key.
+            left : `Widget`
+                The widget activated by pressing the left arrow key.
+            right : `Widget`
+                The widget activated by pressing the right arrow key.
+        """
         self.nav_up = initKw.pop('up', None)
         self.nav_down = initKw.pop('down', None)
         self.nav_left = initKw.pop('left', None)
@@ -851,10 +1221,49 @@ class Button(Widget):
         super(Button, self).__setattr__(name, value)
 
 class PushButton(Button):
+    """
+    Button activated by clicking or pressing Enter while active.
+    
+    :IVariables:
+        normState : `ButtonState`
+            The inactive state
+        rollState : `ButtonState`
+            The active state
+    """
     def __init__(self,
                  normState,
                  rollState=None,
                  *args, **kw):
+        """
+        Initializes the button.
+        
+        :Parameters:
+            normState : `ButtonState`
+                The inactive state
+            rollState : `ButtonState`
+                The active state
+            callback : function
+                Button's action callback
+            args : tuple
+                Additional callback arguments
+            kw : dict
+                Additional callback keyword arguments
+            parent : `Widget`
+                Parent widget
+            rect : ``pygame.Rect``
+                Initial button size and position
+            cache : bool
+                Whether to cache the button
+        :Keywords:
+            up : `Widget`
+                The widget activated by pressing the up arrow key.
+            down : `Widget`
+                The widget activated by pressing the down arrow key.
+            left : `Widget`
+                The widget activated by pressing the left arrow key.
+            right : `Widget`
+                The widget activated by pressing the right arrow key.
+        """
         super(PushButton, self).__init__(normState, *args, **kw)
         self.normState = normState
         if rollState is None:

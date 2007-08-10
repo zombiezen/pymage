@@ -23,7 +23,15 @@
 #   USA
 #
 
-"""Manipulate mathematical vectors."""
+"""
+Manipulate mathematical vectors.
+
+:Variables:
+    i : `Vector`
+        The x unit vector
+    j : `Vector`
+        The y unit vector
+"""
 
 from __future__ import division
 import math
@@ -97,7 +105,22 @@ def _getComponents(args, kw):
     return (float(x), float(y), float(z))
 
 class Vector(object):
-    """A three-dimensional vector."""
+    """
+    A three-dimensional vector.
+    
+    :IVariables:
+        x : float
+            The x value of the vector
+        y : float
+            The y value of the vector
+        z : float
+            The z value of the vector
+        magnitude : float
+            The length of the vector
+        angle : float
+            The angle (in degrees) of the vector counterclockwise from the
+            positive x-axis.
+    """
     
     def __new__(cls, *args, **kw):
         """
@@ -119,8 +142,12 @@ class Vector(object):
         """
         Finds the two-dimensional vector with the given angle and magnitude.
         
-        The angle is in degrees counterclockwise from the positive x-axis.
-        Round-off may experience round-off error.
+        :Parameters:
+            angle : float
+                Degrees counterclockwise from the positive x-axis.
+            magnitude : float
+                Length of the vector.
+        :ReturnType: `Vector`
         """
         # Put angle in range of [0, 360)
         while angle < 0:
@@ -147,6 +174,13 @@ class Vector(object):
         Finds the vector with the given points.
         
         The points can be one-, two-, or three-dimensional.
+        
+        :Parameters:
+            point1 : tuple
+                An (x, y, z) coordinate describing the first point.
+            point2 : tuple
+                An (x, y, z) coordinate describing the second point.
+        :ReturnType: `Vector`
         """
         return cls(point2) - cls(point1)
     
@@ -236,17 +270,35 @@ class Vector(object):
             return NotImplemented
     
     def proj(self, other):
-        """Mathematically: projv u for ``v.proj(u)``"""
+        """
+        Mathematically: projv u for ``v.proj(u)``.
+        
+        :Parameters:
+            other : `Vector`
+                The vector to calculate the projection of.
+        :ReturnType: `Vector`
+        """
         return (other * self / self.magnitude ** 2) * self
     
     def angleBetween(self, other):
-        """Obtains the angle between the two vectors in degrees."""
+        """
+        Obtains the angle between the two vectors in degrees.
+        
+        :Parameters:
+            other : `Vector`
+                The vector to calculate the angle between.
+        :ReturnType: float
+        """
         radianAngle = math.acos((self * other) /
                                 (self.magnitude * other.magnitude))
         return math.degrees(radianAngle)
     
     def unitVector(self):
-        """Creates a vector in the same direction, but of magnitude 1."""
+        """
+        Creates a vector in the same direction, but of magnitude 1.
+        
+        :ReturnType: `Vector`
+        """
         return self / self.magnitude
     
     def _calcMagnitude(self):
@@ -294,22 +346,38 @@ class Vector(object):
             yield self.z
     
     def iter2D(self):
-        """Returns an iterator that accesses only the x and y components."""
+        """
+        Returns an iterator that accesses only the x and y components.
+        
+        :ReturnType: iterator
+        """
         yield self.x
         yield self.y
     
     def iter3D(self):
-        """Returns an iterator that accesses the x, y, and z components."""
+        """
+        Returns an iterator that accesses the x, y, and z components.
+        
+        :ReturnType: iterator
+        """
         yield self.x
         yield self.y
         yield self.z
     
     def list2D(self):
-        """Returns a list that contains only the x and y components."""
+        """
+        Returns a list that contains only the x and y components.
+        
+        :ReturnType: list
+        """
         return [self.x, self.y]
     
     def list3D(self):
-        """Returns a list that contains the x, y, and z components."""
+        """
+        Returns a list that contains the x, y, and z components.
+        
+        :ReturnType: list
+        """
         return [self.x, self.y, self.z]
     
     # Comparison

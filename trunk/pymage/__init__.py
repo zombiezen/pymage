@@ -23,7 +23,31 @@
 #   USA
 #
 
-"""Various utilities to simplify pygame development."""
+"""
+Various utilities to simplify Pygame_ development.
+
+:Author: Ross Light
+:Copyright: Copyright (C) 2006-2007 Ross Light
+:Contact: rlight2@gmail.com
+:License:
+    pymage is free software; you can redistribute it and/or modify it under the
+    terms of the `GNU Lesser General Public License`_ as published by the
+    `Free Software Foundation`_; either version 2.1 of the License, or (at your
+    option) any later version.
+    
+    pymage is distributed in the hope that it will be useful, but **WITHOUT ANY
+    WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or
+    **FITNESS FOR A PARTICULAR PURPOSE**.  See the GNU Lesser General Public
+    License for more details.
+    
+    You should have received a copy of the GNU Lesser General Public License
+    along with pymage; if not, write to the `Free Software Foundation`_, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+
+.. _Pygame: http://www.pygame.org/
+.. _GNU Lesser General Public License: http://www.gnu.org/licenses/lgpl.html
+.. _Free Software Foundation: http://fsf.org/
+"""
 
 __author__ = 'Ross Light'
 __date__ = 'July 20, 2006'

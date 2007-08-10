@@ -142,10 +142,14 @@ def load(*args, **kw):
     """
     Load a series of configuration files.
     
-    This function returns a dictionary of values.  Any optional keyword values
-    are used as variables.  The special keyword ``convert`` specifies whether
-    the function should interpret the values as what they seem to be
-    (e.g. ``float``, ``int``).  The default is ``True``.
+    Any keyword values are used as variables.
+    
+    :Keywords:
+        convert : bool
+            Whether the function should interpret the values as what they seem
+            to be (e.g. ``float``, ``int``).  The default is ``True``.
+    :Returns: Loaded configuration
+    :ReturnType: dict
     """
     # Retrieve convert keyword
     convertValues = kw.get('convert', True)
@@ -181,7 +185,15 @@ def load(*args, **kw):
     return configDict
 
 def save(config, configFile):
-    """Saves a configuration dictionary to a file."""
+    """
+    Saves a configuration dictionary to a file.
+    
+    :Parameters:
+        config : dict
+            Configuration dictionary
+        configFile : string or file
+            File to write configuration to
+    """
     close = False
     parser = CaseConfigParser()
     for section, values in config.iteritems():
@@ -196,7 +208,14 @@ def save(config, configFile):
         configFile.close()
 
 def _getValue(value_string):
-    """Retrieves a value from a ``ConfigParser`` string."""
+    """
+    Retrieves a value from a ``ConfigParser`` string.
+    
+    :Parameters:
+        value_string : string
+            Option string to convert
+    :Returns: The string's value, converted into an int, bool, float, or string
+    """
     boolLiterals = {'false': False,
                     'no': False,
                     'off': False,
@@ -223,6 +242,11 @@ def _isFloat(value_string):
     The format for a float is::
     
         int[.[fraction]]
+    
+    :Parameters:
+        value_string : string
+            String to test for floatiness
+    :ReturnType: bool
     """
     if value_string.isdigit():
         # int
@@ -239,7 +263,20 @@ def _isFloat(value_string):
         return False
 
 def getOption(config, section, option, default=None):
-    """Retrieves an option from the configuration dictionary."""
+    """
+    Retrieves an option from the configuration dictionary.
+    
+    :Parameters:
+        config : dict
+            Configuration dictionary to read from
+        section : string
+            Configuration section
+        option : string
+            Option name
+        default
+            Default value to return if option is not found
+    :Returns: The requested option's value
+    """
     try:
         section = config[section]
     except KeyError:
@@ -248,7 +285,19 @@ def getOption(config, section, option, default=None):
         return section.get(option, default)
 
 def setOption(config, section, option, value):
-    """Changes an option in the configuration dictionary."""
+    """
+    Changes an option in the configuration dictionary.
+    
+    :Parameters:
+        config : dict
+            Configuration dictionary to modify
+        section : string
+            Configuration section
+        option : string
+            Option name
+        value
+            Value to change the option to
+    """
     section = config.setdefault(section, {})
     section[option] = value
 
@@ -258,14 +307,25 @@ def registerType(tag, factory):
     """
     Register a custom game site resource type.
     
-    The ``tag`` argument is the name of the XML element, and ``factory`` is a
-    callable that takes one argument: a path to the resource.  The ``factory``
-    is typically the constructor of a `resman.Resource` subclass.
+    :Parameters:
+        tag : string
+            Name of the XML element
+        factory
+            Callable that takes one positional argument: the path to the
+            resource.  Any additional attributes found on the XML element are
+            passed as keyword arguments.  The value of this parameter is
+            typically the constructor of a `pymage.resman.Resource` subclass.
     """
     _gsPrims[tag] = factory
 
 def unregisterType(tag):
-    """Unregister a custom game site resource type."""
+    """
+    Unregister a custom game site resource type.
+    
+    :Parameters:
+        tag : string
+            Name of the XML element
+    """
     del _gsPrims[tag]
 
 def setup(site='gamesite.xml', *config_files, **kw):
@@ -273,18 +333,18 @@ def setup(site='gamesite.xml', *config_files, **kw):
     Sets up a game from the specified parameters and returns the configuration
     dictionary.
     
-    The first argument is the game site file.  The game site file contains most
-    of the setup information.  It specifies the resource IDs and where to find
-    the configuration files.  It should only be modified by developers as the
-    game is created.
-    
     The additional arguments are program default configuration files.  These
     are parsed before any inside the game site file (therefore giving the site
     configuration files higher precedence).
     
-    Additional keyword arguments can be specified. ``configSound`` specifies
-    whether the sound manager volume is configured, and ``configMusic``
-    specifies whether the music manager volume is configured.
+    :Parameters:
+        site : string or file
+            Game site file.
+    :Keywords:
+        configSound : bool
+            Whether the sound manager volume should be configured automatically
+        configMusic : bool
+            Whether the music manager volume should be configured automatically
     """
     # Get keyword arguments
     configSound = kw.pop('configSound', True)
@@ -306,10 +366,18 @@ def setup(site='gamesite.xml', *config_files, **kw):
 
 def _getSiteConfig(doc, config_files):
     """
-    Find the full list of configuration files.
+    Obtains full configuration.
     
     The configuration files passed in are put first in the list, so the ones
     specified in the game site file take precedence.
+    
+    :Parameters:
+        doc : DOM document
+            Game site DOM tree
+        config_files : list of strings or files
+            Configuration files to load
+    :Returns: The loaded configuration dictionary
+    :ReturnType: dict
     """
     siteConfigs = []
     for child in doc.documentElement.childNodes:
@@ -320,18 +388,38 @@ def _getSiteConfig(doc, config_files):
     return load(*config_files)
 
 def _processSoundOptions(config):
-    """Configure the sound manager with the default configuration keys."""
+    """
+    Configure the sound manager with the default configuration keys.
+    
+    :Parameters:
+        config : dict
+            The configuration dictionary
+    """
     sound.sound.shouldPlay = bool(getOption(config, 'sound', 'play', True))
     sound.sound.volume = float(getOption(config, 'sound', 'volume', 1.0))
 
 def _processMusicOptions(config):
-    """Configure the music manager with the default configuration keys."""
+    """
+    Configure the music manager with the default configuration keys.
+    
+    :Parameters:
+        config : dict
+            The configuration dictionary
+    """
     sound.music.shouldPlay = bool(getOption(config, 'music', 'play', True))
     sound.music.volume = bool(getOption(config, 'music', 'volume', 0.5))
     sound.music.loop = bool(getOption(config, 'music', 'loop', True))
 
 def _processGameSite(doc, config):
-    """Run through game site file and pull out resources."""
+    """
+    Run through game site file and add resources to manager.
+    
+    :Parameters:
+        doc : DOM document
+            Game site DOM tree
+        config : dict
+            Configuration dictionary
+    """
     handlers = {'playlist': _handlePlaylist,
                 'group': _handleGroup,}
     handlers.update(dict.fromkeys(_gsPrims, _handlePrimitive))
@@ -345,6 +433,14 @@ def _processGameSite(doc, config):
 def _handlePrimitive(elem, config):
     """
     Handle a basic resource (i.e. images, sound effects, and custom resources).
+    
+    :Parameters:
+        elem : DOM node
+            Element to handle
+        config : dict
+            Configuration dictionary
+    :Returns: Resource's key
+    :ReturnType: string
     """
     attr = _attributes(elem, include_ns=False, ascii=True)
     pathChild = _childNamed(elem, 'path')
@@ -374,7 +470,17 @@ def _handlePrimitive(elem, config):
     return key
 
 def _handlePlaylist(elem, config):
-    """Handle a playlist element."""
+    """
+    Handle a playlist element.
+    
+    :Parameters:
+        elem : DOM node
+            Element to handle
+        config : dict
+            Configuration dictionary
+    :Returns: Playlist's key
+    :ReturnType: string
+    """
     key = elem.getAttribute('id')
     section = _getText(_childNamed(elem, 'section'))
     option = _getText(_childNamed(elem, 'option'))
@@ -410,7 +516,17 @@ def _handlePlaylist(elem, config):
     return key
 
 def _handleGroup(elem, config):
-    """Handle a group element (a cache group)."""
+    """
+    Handle a group element (a cache group).
+    
+    :Parameters:
+        elem : DOM node
+            Element to handle
+        config : dict
+            Configuration dictionary
+    :Returns: Cache group's key
+    :ReturnType: string
+    """
     key = elem.getAttribute('id')
     section = _getText(_childNamed(elem, 'section'))
     option = _getText(_childNamed(elem, 'option'))
@@ -440,6 +556,15 @@ def _getText(elem, post=True):
     This function does honor the ``xml:space`` attribute, and if
     ``xml:space="preserve"`` is specified, it takes precendence over the
     ``post`` argument.
+    
+    :Parameters:
+        elem : DOM node
+            The element to get text from
+    :Keywords:
+        post : bool
+            Whether to strip indents
+    :Returns: The element's text
+    :ReturnType: string
     """
     xmlNS = 'http://www.w3.org/XML/1998/namespace'
     if elem is None:
@@ -459,7 +584,17 @@ def _getText(elem, post=True):
     return text
 
 def _childNamed(elem, name):
-    """Returns the first child with the given name, or ``None`` if not found."""
+    """
+    Returns the first child with the given name.
+    
+    :Parameters:
+        elem : DOM node
+            The element to search in
+        name : string
+            The name to search for
+    :Returns: The named child, or ``None`` if not found
+    :ReturnType: DOM node
+    """
     for child in elem.childNodes:
         if (child.nodeType == minidom.Node.ELEMENT_NODE and
             child.tagName == name):
@@ -471,9 +606,17 @@ def _attributes(elem, include_ns=True, ascii=False):
     """
     Retrieves the attributes of a DOM node as a dictionary.
     
-    If ``include_ns`` is ``True``, then attributes with a namespace will be
-    discarded.  If ``ascii`` is ``True``, then the attribute names are converted
-    to ASCII, but if they are unable to do so, the attribute is discarded.
+    If ``include_ns`` is ``True``, then .  If ``ascii`` is ``True``, then 
+    
+    :Parameters:
+        elem : DOM node
+            The element to extract attributes from
+    :Keywords:
+        include_ns : bool
+            Whether attributes with a namespace will be discarded
+        ascii : bool
+            Whether the attribute names are converted to ASCII.  If an attribute
+            name cannot be converted, the entire attribute is discarded.
     """
     nodemap = elem.attributes
     attrDict = {}

@@ -23,7 +23,15 @@
 #   USA
 #
 
-"""pymage sound subsystem"""
+"""
+pymage sound subsystem
+
+:Variables:
+    music : `MusicManager`
+        The global music manager
+    sound : `SoundManager`
+        The global sound manager
+"""
 
 import warnings
 
@@ -45,6 +53,25 @@ class MusicManager(resman.Submanager):
     Game music manager.
     
     For sound effects, use `SoundManager`.
+    
+    :CVariables:
+        endEvent : int
+            The event indicating the end of a song
+    :IVariables:
+        savedPlaylists : dict of lists
+            Saved playlists
+        playlist : list
+            Current play order
+        index : int
+            Index of the current song in the current playlist
+        loop : bool
+            Whether the music should loop
+        shouldPlay : bool
+            Whether music should be loaded
+        playing : bool
+            Whether music is playing
+        volume : float
+            Volume of music (from 0.0 to 1.0)
     """
     endEvent = 25
     
@@ -52,6 +79,17 @@ class MusicManager(resman.Submanager):
                  should_play=True,
                  loop=True,
                  *args, **kw):
+        """
+        Initializes the music manager.
+        
+        :Parameters:
+            should_play : bool
+                Whether music should be loaded
+            loop : bool
+                Whether to loop music
+            manager : `ResourceManager`
+                The resource manager to use.  Default is `pymage.resman.resman`.
+        """
         super(MusicManager, self).__init__(*args, **kw)
         self.savedPlaylists = {}
         self.playlist = []
@@ -69,7 +107,13 @@ class MusicManager(resman.Submanager):
         
         .. Warning::
            `prepare` is retained for compatibility reasons.  You should be using
-           `addPlaylist` to add new resources.
+           `addPlaylist` to add new playlists.
+        
+        :Parameters:
+            tag : string
+                Name of new playlist
+            playlist : list of strings
+                Songs in playlist
         """
         warnings.warn("prepare is deprecated; use addPlaylist.",
                       DeprecationWarning,
@@ -77,15 +121,39 @@ class MusicManager(resman.Submanager):
         self.addPlaylist(tag, playlist)
     
     def addPlaylist(self, key, songs):
-        """Adds a new playlist."""
+        """
+        Adds a new playlist.
+        
+        :Parameters:
+            key : string
+                Name of new playlist
+            songs : list of strings
+                Songs in new playlist
+        """
         self.savedPlaylists[key] = list(songs)
     
     def getPlaylist(self, key):
-        """Accesses the playlist."""
+        """
+        Accesses the playlist.
+        
+        :Parameters:
+            key : string
+                Name of playlist
+        :Returns: List of songs in playlist
+        :ReturnType: list
+        :Raises KeyError: If playlist does not exist
+        """
         return self.savedPlaylists[key]
     
     def removePlaylist(self, key):
-        """Removes a saved playlist."""
+        """
+        Removes a saved playlist.
+        
+        :Parameters:
+            key : string
+                Name of playlist
+        :Raises KeyError: If playlist does not exist
+        """
         del self.savedPlaylists[key]
     
     # Playback control
@@ -94,11 +162,13 @@ class MusicManager(resman.Submanager):
         """
         Starts a playlist denoted by ``key``.
         
-        You may pass an iterable object to `startPlaylist`, and the object will
-        be used as a playlist.
-        
         After calling `startPlaylist`, the playlist is *cued*.  You then need to
         call `play` to start playing music.
+        
+        :Parameters:
+            key : string or iterable
+                Playlist to play.  If an iterable is passed, then it will be
+                used as a temporary playlist.
         """
         try:
             self.playlist = self.getPlaylist(key)
@@ -138,9 +208,12 @@ class MusicManager(resman.Submanager):
         """
         Manually loads a song.
         
-        If no argument is given, the current song in the playlist is loaded.
         This method will not load anything unless the manager is configured to
         play.
+        
+        :Parameters:
+            key : string
+                Name of song.  If not given, the current song is loaded.
         """
         if key is None:
             if self.playlist:
@@ -181,7 +254,7 @@ class MusicManager(resman.Submanager):
         """
         Gets the current volume.
         
-        You can also use the ``volume`` property.
+        You can also use the `volume` property.
         """
         return self.volume
     
@@ -189,7 +262,7 @@ class MusicManager(resman.Submanager):
         """
         Changes the current volume.
         
-        You can also use the ``volume`` property.
+        You can also use the `volume` property.
         """
         self.volume = volume
     
@@ -210,10 +283,27 @@ class SoundManager(resman.Submanager):
     Sound effects manager.
     
     For music, use `MusicManager`.
+    
+    :IVariables:
+        shouldPlay : bool
+            Whether sound effects should be loaded
+        volume : float
+            Volume of played sound effects (from 0.0 to 1.0)
     """
     resourceType = resman.SoundResource
     
     def __init__(self, should_play=True, volume=0.5, *args, **kw):
+        """
+        Initializes the sound manager.
+        
+        :Parameters:
+            should_play : bool
+                Whether sound effects should be loaded
+            volume : float
+                Volume of played sound effects (from 0.0 to 1.0)
+            manager : `ResourceManager`
+                The resource manager to use.  Default is `pymage.resman.resman`.
+        """
         super(SoundManager, self).__init__(*args, **kw)
         self.shouldPlay = should_play
         self.volume = volume
@@ -225,6 +315,12 @@ class SoundManager(resman.Submanager):
         .. Warning::
            `getSound` is deprecated, for favor of the Submanager API.  Use
            `load` instead.
+        
+        :Parameters:
+            key : string
+                Name of sound
+        :Returns: The sound requested
+        :ReturnType: ``pymage.mixer.Sound``
         """
         warnings.warn("getSound is deprecated; use load.",
                       DeprecationWarning,
@@ -233,11 +329,18 @@ class SoundManager(resman.Submanager):
     
     def play(self, tag, volume=None, cache=True):
         """
-        Plays a sound and returns the sound object.
+        Plays a sound.
         
-        This method will use a cached representation if possible.  Also, you can
-        specify a non-default volume, if desired.  The cache flag specifies
-        whether the sound will be cached, not whether it uses the cache.
+        :Parameters:
+            tag : string
+                Name of sound effect
+            volume : float
+                Volume of the sound effect.  If not specified, `volume`
+                attribute is used
+            cache : bool
+                Whether the sound will be cached
+        :Returns: The playing sound
+        :ReturnType: ``pymage.mixer.Sound``
         """
         if volume is None:
             volume = self.volume
