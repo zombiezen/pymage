@@ -37,15 +37,38 @@ class Axis(object):
     """
     Represents a joystick axis.
     
-    There is an attribute, ``perfect``, that is defaulted to ``False``.  When
-    ``True``, a few extra calculations are performed to ensure that the axis is
-    always within the -1.0 to 1.0 range.  Otherwise, the only calculation
-    performed is inversion.
+    :CVariables:
+        perfectRange : tuple
+            The three magic values for calculating perfect mode.
+    :IVariables:
+        joy : ``pygame.joystick.Joystick``
+            Joystick
+        num : int
+            Axis number
+        invert : bool
+            Invert axis (always calculated)
+        perfect : bool
+            Whether perfect mode is active.  When ``True``, a few extra
+            calculations are performed to ensure that the axis is always within
+            the -1.0 to 1.0 range.
     """
     perfectRange = (-1.0, 0.0, 1.0)
     perfect = False
     
     def __init__(self, joy, num, invert=False, perfect=None):
+        """
+        Initializes the axis.
+        
+        :Parameters:
+            joy : ``pygame.joystick.Joystick``
+                Joystick
+            num : int
+                Axis number
+            invert : bool
+                Invert axis
+            perfect : bool
+                Whether perfect mode is active.
+        """
         self.joy, self.num = joy, num
         self.invert = invert
         if perfect is not None:
@@ -59,7 +82,11 @@ class Axis(object):
         If the axis is in perfect mode, calibrate the axis from the information
         given.
         
-        You shouldn't need to use this, instead, use `sample`.
+        .. Tip:: You shouldn't need to use this, instead, use `sample`.
+        
+        :Parameters:
+            value : float
+                Raw joystick value
         """
         if self.perfect:
             perfectMin, perfectMid, perfectMax = self.perfectRange
@@ -89,7 +116,13 @@ class Axis(object):
         """
         Converts a raw value from the joystick.
         
-        You shouldn't need to use this, instead, use `get`.
+        .. Tip:: You shouldn't need to use this, instead, use `get`.
+        
+        :Parameters:
+            raw_value : float
+                Raw joystick value
+        :Returns: Converted value
+        :ReturnType: float
         """
         if self.perfect:
             value = (raw_value + self.offset) * self.scale
@@ -106,6 +139,9 @@ class Axis(object):
         If the axis is in perfect mode, this performs calculations based on
         previous calibration information to ensure it is perfect.  If in normal
         mode, this retreives the raw value (inverted, if necessary).
+        
+        :Returns: Axis value
+        :ReturnType: float
         """
         joy = pygame.joystick.Joystick(self.joy)
         return self.convert(joy.get_axis(self.num))

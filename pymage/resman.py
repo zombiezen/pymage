@@ -23,7 +23,13 @@
 #   USA
 #
 
-"""Handles all resources"""
+"""
+Handles all resources
+
+:Variables:
+    resman : `ResourceManager`
+        Global resource manager
+"""
 
 import warnings
 
@@ -55,6 +61,14 @@ class ResourceManager(object):
     uncached in bulk.  Multiple cache groups can have the same resource in them;
     when no cache groups are caching a given resource, the resource's cache is
     destroyed.
+    
+    :IVariables:
+        resources : dict
+            Resources
+        cacheGroups : dict
+            Cache groups
+        cacheCount : dict
+            The number of cache references
     """
     def __init__(self):
         self.resources = {}
@@ -75,7 +89,12 @@ class ResourceManager(object):
         """
         Adds a resource to the manager.
         
-        A ``KeyError`` is raised if a resource of the same key already exists.
+        :Parameters:
+            key : string
+                Name of the resource
+            resource : `Resource`
+                Resource object
+        :Raises KeyError: If a resource of the same key already exists.
         """
         if key not in self.resources:
             self.resources[key] = resource
@@ -86,7 +105,12 @@ class ResourceManager(object):
         """
         Retrieves a resource from the manager.
         
-        A ``KeyError`` is raised if no resource exists with that key.
+        :Parameters:
+            key : string
+                Name of the resource
+        :Raises KeyError: If no resource exists with that key.
+        :Returns: The resource with the given key
+        :ReturnType: `Resource`
         """
         if self.hasResource(key):
             return self.resources[key]
@@ -94,14 +118,25 @@ class ResourceManager(object):
             raise KeyError(key)
     
     def hasResource(self, key):
-        """Query the existence of the resource."""
+        """
+        Query the existence of the resource.
+        
+        :Parameters:
+            key : string
+                Name of the resource
+        :Returns: Whether the manager has the key
+        :ReturnType: bool
+        """
         return key in self.resources
     
     def removeResource(self, key):
         """
         Removes a resource from the manager.
         
-        A ``KeyError`` is raised if no resource exists with that key.
+        :Parameters:
+            key : string
+                Name of the resource
+        :Raises KeyError: If no resource exists with that key.
         """
         if key in self.resources:
             del self.resources[key]
@@ -117,8 +152,12 @@ class ResourceManager(object):
         This increases the cache count of the resource, so it will not be
         uncached by resource groups.
         
-        The ``force`` flag has the exact same meaning as the one in
-        `Resource.createCache`.
+        :Parameters:
+            key : string
+                Name of the resource
+            force : bool
+                Whether to refresh the cache if the cache already exists
+        :See: `Resource.createCache`
         """
         self.getResource(key).createCache(force=force)
         try:
@@ -132,6 +171,10 @@ class ResourceManager(object):
         
         This decreases the cache count of the resource, so it will not be
         uncached until all resource groups are uncached.
+        
+        :Parameters:
+            key : string
+                Name of the resource
         """
         try:
             self.cacheCount[key] -= 1
@@ -146,6 +189,10 @@ class ResourceManager(object):
         
         Any additional arguments are passed to the resource's `Resource.get`
         method.
+        
+        :Parameters:
+            key : string
+                Name of the resource
         """
         return self.getResource(key).get(*args, **kw)
     
@@ -155,8 +202,12 @@ class ResourceManager(object):
         """
         Adds a cache group to the manager.
         
-        A ``KeyError`` is raised if a cache group of the same key already
-        exists.
+        :Parameters:
+            key : string
+                Name of the cache group
+            resource_keys : list
+                List of resource keys to cache
+        :Raises KeyError: If a cache group of the same key already exists.
         """
         if key not in self.cacheGroups:
             self.cacheGroups[key] = frozenset(resource_keys)
@@ -167,7 +218,12 @@ class ResourceManager(object):
         """
         Retrieves a cache group from the manager.
         
-        A ``KeyError`` is raised if no cache group exists with that key.
+        :Parameters:
+            key : string
+                Name of the cache group
+        :Raises KeyError: If no cache group exists with that key.
+        :Returns: The cache group with the given key
+        :ReturnType: frozenset
         """
         if self.hasCacheGroup(key):
             return self.cacheGroups[key]
@@ -175,14 +231,25 @@ class ResourceManager(object):
             raise KeyError(key)
     
     def hasCacheGroup(self, key):
-        """Query the existence of the cache group."""
+        """
+        Query the existence of the cache group.
+        
+        :Parameters:
+            key : string
+                Name of the cache group
+        :Returns: Whether the manager has the key
+        :ReturnType: bool
+        """
         return key in self.cacheGroups
     
     def removeCacheGroup(self, key):
         """
         Removes a cache group from the manager.
         
-        A ``KeyError`` is raised if no cache group exists with that key.
+        :Parameters:
+            key : string
+                Name of the cache group
+        :Raises KeyError: If no cache group exists with that key.
         """
         if key in self.cacheGroups:
             del self.cacheGroups[key]
@@ -195,8 +262,12 @@ class ResourceManager(object):
         """
         Caches the resources in a cache group.
         
-        The ``force`` flag has the exact same meaning as the one in
-        `Resource.createCache`.
+        :Parameters:
+            key : string
+                Name of the cache group
+            force : bool
+                Whether to refresh the cache if the cache already exists
+        :See: `Resource.createCache`
         """
         for cacheKey in self.getCacheGroup(key):
             self.cacheResource(cacheKey, force=force)
@@ -207,6 +278,10 @@ class ResourceManager(object):
         
         Because multiple groups may reference the same resource, you should not
         depend on all of the resources being uncached.
+        
+        :Parameters:
+            key : string
+                Name of the resource
         """
         for cacheKey in self.getCacheGroup(key):
             self.uncacheResource(cacheKey)
@@ -214,8 +289,23 @@ class ResourceManager(object):
 resman = ResourceManager()
 
 class Resource(object):
-    """Generic resource object."""
+    """
+    Generic resource object.
+    
+    :IVariables:
+        path : string
+            The path to the resource file
+        cache
+            The resource's cache (``None`` if there isn't one)
+    """
     def __init__(self, path):
+        """
+        Initializes the resource.
+        
+        :Parameters:
+            path : string
+                The path to the resource file
+        """
         self.path = path
         self.cache = None
     
@@ -228,6 +318,8 @@ class Resource(object):
         such as a ``pygame.Surface`` object.
         
         This is usually not called directly, instead, see the `get` method.
+        
+        :Returns: The resource's data
         """
         raise NotImplementedError()
     
@@ -239,6 +331,8 @@ class Resource(object):
         but no cache is saved.
         
         Any additional arguments are passed along to the `load` method.
+        
+        :Returns: The resource's data
         """
         if self.hasCache():
             return self.cache
@@ -250,45 +344,68 @@ class Resource(object):
         Creates a resource cache.
         
         The default implementation passes arguments to the `load` method and
-        stores the result to the ``cache`` attribute.
+        stores the result to the `cache` attribute.
         
-        The ``force`` keyword will specify whether to refresh the cache if the
-        cache already exists.
+        :Keywords:
+            force : bool
+                Whether to refresh the cache if the cache already exists.
         """
         force = kw.pop('force', False)
         if force or self.cache is None:
             self.cache = self.load(*args, **kw)
     
     def hasCache(self):
-        """Returns ``True`` if the resource has a cache."""
+        """
+        Returns ``True`` if the resource has a cache.
+        
+        :Returns: Whether the resource has a cache
+        :ReturnType: bool
+        """
         return self.cache is not None
     
     def destroyCache(self):
         """
         Destroys the resource cache.
         
-        The default implementation sets the ``cache`` attribute to ``None``.
+        The default implementation sets the `cache` attribute to ``None``.
         """
         self.cache = None
 
 class ImageResource(Resource):
-    """Image resource loader."""
+    """
+    Image resource loader.
+    
+    :IVariables:
+        convert : bool
+            Whether to convert to screen format after loading
+        alpha : bool
+            Whether alpha information should be preserved.  This is ignored if
+            `convert` is ``False``.
+    """
     def __init__(self, path, convert=True, alpha=True):
         """
         Initializes the resource.
-        
-        In addition to ``path``, there are two parameters, ``convert`` and
-        ``alpha``. ``convert`` specifies whether the resource should be
-        converted to the screen format after being loaded. ``alpha`` specifies
-        whether alpha information should be preserved, but the flag is ignored
-        if ``convert`` is ``False``.
+    
+        :IVariables:
+            path : string
+                Path to the resource file
+            convert : bool
+                Whether to convert to screen format after loading
+            alpha : bool
+                Whether alpha information should be preserved.  This is ignored
+                if convert is ``False``.
         """
         super(ImageResource, self).__init__(path)
         self.convert = convert
         self.alpha = alpha
     
     def load(self):
-        """Load the image."""
+        """
+        Load the image.
+        
+        :Returns: The surface of the image
+        :ReturnType: ``pygame.Surface``
+        """
         img = pygame.image.load(self.path)
         if self.convert:
             if self.alpha:
@@ -305,18 +422,22 @@ class AudioResource(Resource):
 class SoundResource(AudioResource):
     """Sound resource loader."""
     def load(self):
-        """Load the sound."""
+        """
+        Load the sound.
+        
+        :Returns: The sound object
+        :ReturnType: ``pygame.mixer.Sound``
+        """
         return pygame.mixer.Sound(self.path)
 
 class MusicResource(AudioResource):
-    """
-    Music resource loader.
-    
-    The `load` method returns ``None``, as the loader loads the music into
-    pygame's music mixer.
-    """
+    """Music resource loader."""
     def load(self):
-        """Load the music."""
+        """
+        Load the music into the Pygame music mixer.
+        
+        :Returns: ``None``
+        """
         pygame.mixer.music.load(self.path)
     
     def createCache(self, *args, **kw):
@@ -334,6 +455,13 @@ class Submanager(object):
     Submanagers load resources from a central resource manager, but only deal
     with certain types.  They cannot modify the resources, only control their
     loading and caching.
+    
+    :CVariables:
+        resourceType : `Resource` subclass
+            The type of resource the submanager will load
+    :IVariables:
+        manager : `ResourceManager`
+            The resource manager to use
     """
     resourceType = Resource
     
@@ -341,8 +469,9 @@ class Submanager(object):
         """
         Initializes the submanager.
         
-        Default uses the master resource manager
-        (i.e. ``pymage.resman.resman``).
+        :Parameters:
+            manager : `ResourceManager`
+                The resource manager to use.  Default is `pymage.resman.resman`.
         """
         if manager is None:
             manager = resman
@@ -355,6 +484,12 @@ class Submanager(object):
         .. Warning::
            `prepare` is retained for compatibility reasons.  You should be using
            `ResourceManager.addResource` to add new resources.
+        
+        :Parameters:
+            tag : string
+                The key to add
+            defaultPath : string
+                The path of the key
         """
         warnings.warn("prepare is deprecated; use ResourceManager.addResource.",
                       DeprecationWarning,
@@ -365,7 +500,19 @@ class Submanager(object):
         self.manager.addResource(tag, resource)
     
     def cache(self, key, force=False):
-        """Cache the resource and return the resource's content."""
+        """
+        Cache the resource and return the resource's content.
+        
+        :Parameters:
+            key : string
+                The resource's key
+            force : bool
+                Whether to refresh the cache if the cache already exists.
+        :Returns: The resource's data
+        :Raises KeyError: If the resource doesn't exist or isn't of the correct
+                          type
+        :See: `Resource.createCache`
+        """
         resource = self.manager.getResource(key)
         if isinstance(resource, self.resourceType):
             self.manager.cacheResource(key, force)
@@ -374,7 +521,16 @@ class Submanager(object):
             raise KeyError(key)
     
     def uncache(self, key):
-        """Uncache the resource."""
+        """
+        Uncache the resource.
+        
+        :Parameters:
+            key : string
+                The resource's key
+        :Raises KeyError: If the resource doesn't exist or isn't of the correct
+                          type
+        :See: `Resource.destroyCache`
+        """
         resource = self.manager.getResource(key)
         if isinstance(resource, self.resourceType):
             self.manager.uncacheResource(key)
@@ -382,7 +538,18 @@ class Submanager(object):
             raise KeyError(key)
     
     def load(self, key, *args, **kw):
-        """Retreive's a resource's content."""
+        """
+        Retreive's a resource's content.
+        
+        Any additional arguments are passed to `Resource.get`.
+        
+        :Parameters:
+            key : string
+                The resource's key
+        :Raises KeyError: If the resource doesn't exist or isn't of the correct
+                          type
+        :See: `Resource.get`
+        """
         resource = self.manager.getResource(key)
         if isinstance(resource, self.resourceType):
             return self.manager.loadResource(key, *args, **kw)

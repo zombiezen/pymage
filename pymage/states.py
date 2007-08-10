@@ -54,7 +54,15 @@ __all__ = ['State',
            'TwistedGame',]
 
 class State(object):
-    """Game state that handles events and displays on a surface."""
+    """
+    Game state that handles events and displays on a surface.
+    
+    :CVariables:
+        bgColor : tuple
+            The state's clear color as an RGB 0-255 tuple
+        quitOnEscape : bool
+            Whether pressing escape quits the game
+    """
     bgColor = (0, 0, 0)
     quitOnEscape = False
     
@@ -66,7 +74,11 @@ class State(object):
         """
         Hook method for handling events.
         
-        This implementation *should* always be called.
+        .. Note:: This implementation *should* always be called.
+        
+        :Parameters:
+            event : ``pygame.event.Event``
+                Event to handle
         """
         if event.type == QUIT:
             sys.exit()
@@ -79,7 +91,9 @@ class State(object):
         """
         Hook method for updating the state.
         
-        ``game`` is an instance of `Game`.
+        :Parameters:
+            game : `Game`
+                Current game
         """
         pass
     
@@ -88,16 +102,45 @@ class State(object):
         Hook method for displaying the `State` for the first time.
         
         By default, this merely fills the screen with the background color.
+        
+        :Parameters:
+            screen : ``pygame.Surface``
+                Surface to draw to
         """
         screen.fill(self.bgColor)
         pygame.display.flip()       # Swap buffers
     
     def display(self, screen):
-        """Hook method for drawing the `State`."""
+        """
+        Hook method for drawing the state.
+        
+        :Parameters:
+            screen : ``pygame.Surface``
+                Surface to draw to
+        """
         pass
 
 class GLState(State):
-    """Game state with OpenGL-specific drawing."""
+    """
+    Game state with OpenGL-specific drawing.
+    
+    :CVariables:
+        fovy : float
+            Horizontal visible field-of-view angle
+        clipNear : float
+            Near clipping distance
+        clipFar : float
+            Far clipping distance
+        bgColor : tuple
+            Clear color as RGBA 0.0-1.0 tuple
+    :IVariables:
+        camPos : tuple
+            Camera position as a (x, y, z) tuple
+        camAim : tuple
+            Camera aim as a (x, y, z) tuple
+        camUpv : tuple
+            Camera up vector as a (x, y, z) tuple
+    """
     # Camera
     fovy = 60.0
     clipNear = 0.1
@@ -123,7 +166,7 @@ class GLState(State):
         self.setupCamera(surf.get_width(), surf.get_height())
     
     def setupClearColor(self):
-        """Sets the OpenGL clear color from the ``bgColor`` attribute."""
+        """Sets the OpenGL clear color from the `bgColor` attribute."""
         r, g, b = self.bgColor[:3]
         if len(self.bgColor) >= 4:
             a = self.bgColor[4]
@@ -136,6 +179,12 @@ class GLState(State):
         Sets up the OpenGL camera.
         
         This includes setting up the viewport, perspective, and camera position.
+        
+        :Parameters:
+            width : int
+                Width of viewport
+            height : int
+                Height of viewport
         """
         glViewport(0, 0, width, height)
         glMatrixMode(GL_PROJECTION)
@@ -155,6 +204,10 @@ class GLState(State):
         Called on first display.
         
         Calls `initGL`, does a ``glClear``, and flips the buffer.
+        
+        :Parameters:
+            screen : ``pygame.Surface``
+                Surface to draw to
         """
         self.initGL()
         glClear(GL_COLOR_BUFFER_BIT)
@@ -165,6 +218,10 @@ class GLState(State):
         Called on displaying.
         
         Calls `setupGL`, does a ``glClear``, and flips the buffer.
+        
+        :Parameters:
+            screen : ``pygame.Surface``
+                Surface to draw to
         """
         self.setupGL()
         glClear(GL_COLOR_BUFFER_BIT)
@@ -174,6 +231,23 @@ class Paused(State):
     """
     Abstract superclass for simple pause screens that can show text and/or an
     image.
+    
+    :CVariables:
+        image : ``pygame.Surface``
+            Image to display in background
+        useIM : bool
+            Whether to use the image manager to get the image
+        text : string
+            String to display
+        fontSize : int
+            Size of the text font
+        textColor : tuple
+            Text color as an RGBA 0-255 tuple.
+        excludedKeys : list
+            Keys to ignore
+    :IVariables:
+        finished : bool
+            Whether the state is finished
     """
     finished = False
     image = None
@@ -252,12 +326,23 @@ class Paused(State):
         """
         Hook method for advancing to the next state.
         
-        Raises a ``NotImplementedError`` if not overridden.
+        :Raises NotImplementedError: if not overridden
+        :ReturnType: `State`
         """
         raise NotImplementedError("Override nextState")
 
 class Menu(State):
-    """Abstract superclass for menu screens."""
+    """
+    Abstract superclass for menu screens.
+    
+    :IVariables:
+        newState : `State`
+            The next state to advance to
+        container : `ui.Container`
+            The root widget
+        cursor : `ui.CursorWidget`
+            Visible cursor
+    """
     def __init__(self, *args, **kw):
         super(Menu, self).__init__(*args, **kw)
         initRect = pygame.display.get_surface().get_rect()
@@ -268,12 +353,7 @@ class Menu(State):
         self.body()
     
     def body(self):
-        """
-        Adds the menu's contents.
-        
-        Override in subclasses.  The root widget is the ``container`` attribute.
-        You may set the ``cursor`` attribute to a `ui.CursorWidget`.
-        """
+        """Adds the menu's contents."""
         pass
     
     def handle(self, event):
@@ -287,8 +367,8 @@ class Menu(State):
         """
         Updates the UI widgets.
         
-        If you change the ``newState`` attribute to a non-``None`` value, it
-        will become the new state.
+        If you change the `newState` attribute to a non-``None`` value, it will
+        become the new state.
         """
         self.container.update()
         if self.cursor is not None:
@@ -312,12 +392,39 @@ class Menu(State):
         pygame.display.update(updates)
 
 class Game(object):
-    """Game object that manages the state machine."""
+    """
+    Game object that manages the state machine.
+    
+    :CVariables:
+        screenSize : tuple
+            Screen size (in pixels) as a (width, height) tuple
+        ticks : int
+            Capped number of frames per second
+        flags : int
+            Flags to pass to the display, as described in
+            ``pygame.display.set_mode``.
+    :IVariables:
+        state : `State`
+            Current state
+        nextState : `State`
+            State to advance to
+        running : bool
+            Whether the game is running
+        clock : ``pygame.time.Clock``
+            FPS timer
+    """
     screenSize = (800, 600)
     ticks = 60
     flags = 0
     
     def __init__(self, root_dir, **kw):
+        """
+        Initialize game.
+        
+        :Parameters:
+            root_dir : string
+                Directory to chdir to.  You can even pass sys.argv[0].
+        """
         # Change to root directory (for relative paths)
         os.chdir(os.path.abspath(os.path.dirname(root_dir)))
         # Start with no state
@@ -330,7 +437,11 @@ class Game(object):
     
     def changeToState(self, state):
         """
-        Changes to the given `State` instance on the next event loop iteration.
+        Changes to a state on the next event loop iteration.
+        
+        :Parameters:
+            state : `State`
+                State to change to
         """
         self.nextState = state
     
@@ -400,25 +511,35 @@ class FakeClock(object):
         self.delay = 0
     
     def get_fps(self):
-        """Returns the current rate of frames per second."""
+        """
+        Returns the current rate of frames per second.
+        
+        :ReturnType: float
+        """
         return 1 / self.get_time()
     
     def get_rawtime(self):
         """
         Returns number of nondelayed milliseconds between last two calls to
         `tick`.
+        
+        :ReturnType: int
         """
         return self.delta
     
     def get_delay(self):
         """
         Returns number of delayed milliseconds between last two calls to `tick`.
+        
+        :ReturnType: int
         """
         return self.delay
     
     def get_time(self):
         """
         Returns number of milliseconds between last two calls to `tick`.
+        
+        :ReturnType: int
         """
         return self.get_rawtime() + self.get_delay()
     
@@ -449,8 +570,12 @@ class TwistedGame(Game):
         """
         Initialize game object.
         
-        If ``reactor`` is not specified, then the default Twisted_ reactor is
-        used.
+        :Parameters:
+            root_dir : string
+                Directory to chdir to.  You can even pass sys.argv[0].
+            reactor : Twisted reactor
+                Reactor to use for main event loop.  If not specified, then the
+                default reactor is used.
         """
         super(TwistedGame, self).__init__(root_dir, **kw)
         if reactor is None:
