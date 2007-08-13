@@ -147,7 +147,7 @@ class Widget(object):
         """
         Returns an iterator descending the entire child tree.
         
-        :Parameters:
+        :Keywords:
             include_self : bool
                 Specifies whether the widget is included in the iterator.
             topdown : bool
@@ -291,7 +291,7 @@ class Widget(object):
         :ReturnType: bool
         """
         if event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION):
-            tree = self.root.childTree(includeSelf=True,
+            tree = self.root.childTree(include_self=True,
                                        topdown=False)
             for child in tree:
                 if child.screenRect().collidepoint(*event.pos):
@@ -375,7 +375,7 @@ class Widget(object):
         :Returns: The current active widget, or ``None`` if there is not one.
         :ReturnType: `Widget`
         """
-        for child in self.childTree(includeSelf=True):
+        for child in self.childTree(include_self=True):
             if child.isActive():
                 return child
         else:
