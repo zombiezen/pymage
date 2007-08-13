@@ -345,7 +345,7 @@ class Menu(State):
         super(Menu, self).__init__(*args, **kw)
         initRect = pygame.display.get_surface().get_rect()
         self.newState = None
-        self.container = ui.Container(bgColor=self.bgColor,
+        self.container = ui.Container(bg_color=self.bgColor,
                                       rect=initRect)
         self.cursor = None
         self.body()
@@ -414,6 +414,16 @@ class Game(object):
     screenSize = (800, 600)
     ticks = 60
     flags = 0
+    _globalGame = None
+    
+    @classmethod
+    def getGame(cls):
+        """
+        Retrieves the current game.
+        
+        :ReturnType: `Game`
+        """
+        return cls._globalGame
     
     def __init__(self, root_dir, **kw):
         """
@@ -432,6 +442,9 @@ class Game(object):
         self.clock = None
         # Set up instance variables
         self.__dict__.update(kw)
+        # Set up global game
+        if type(self)._globalGame is None:
+            type(self)._globalGame = self
     
     def changeToState(self, state):
         """
