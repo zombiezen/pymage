@@ -1,6 +1,13 @@
 #summary Different releases and their changes
 #labels Type-Info
 
+= Version 0.2.2 =
+
+  * Major documentation overhaul
+  * Added global game instance retrieval
+  * Upgraded to [http://www.gpl.org/licenses/lgpl.html LGPLv3]
+  * Added [http://twistedmatrix.com/ Twisted] support
+
 = Version 0.2.1 =
 
   * Internal code clean up
@@ -41,6 +48,7 @@
 = Version 0.1.0 =
 
  * First public release
+
 
 
 
