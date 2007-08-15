@@ -326,7 +326,12 @@ class Widget(object):
                  but always call this implementation to actually focus the
                  widget.
         
-        :Returns: Wheter the focus was successful.
+        :Keywords:
+            force_blur : bool
+                Whether to force the currently active widget to blur.
+            force_focus : bool
+                Whether to force the widget to focus.
+        :Returns: Whether the focus was successful.
         :ReturnType: bool
         """
         if force_focus or self.canFocus():
@@ -357,6 +362,9 @@ class Widget(object):
                  but always call this implementation to actually blur the
                  widget.
         
+        :Keywords:
+            force : bool
+                Whether to force the widget to blur.
         :Returns: Whether the blur was successful.
         :ReturnType: bool
         """
