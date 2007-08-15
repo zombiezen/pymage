@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<!-- name is not necessary, but reserved for future use. -->
+<game-site name="Hello World">
+    <image id="Hello">
+        <section>images</section>
+        <option>hello</option>
+        <path>Hello.png</path>
+    </image>
+    
+    <!-- Specify additional configuration files. -->
+    <config-file>userconfig.ini</config-file>
+</game-site>
