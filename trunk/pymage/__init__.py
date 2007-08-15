@@ -58,6 +58,7 @@ __all__ = ['config',
            'ui',
            'vector',]
 __docformat__ = 'reStructuredText'
+__version__ = '0.2.2'
 
 from pymage import config
 from pymage import joystick
