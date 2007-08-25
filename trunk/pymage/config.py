@@ -195,6 +195,7 @@ def save(config, configFile):
     close = False
     parser = CaseConfigParser()
     for section, values in config.iteritems():
+        parser.add_section(section)
         for option, value in values.iteritems():
             parser.set(section, option, value)
     if isinstance(configFile, basestring):
@@ -328,8 +329,7 @@ def unregisterType(tag):
 
 def setup(site='gamesite.xml', *config_files, **kw):
     """
-    Sets up a game from the specified parameters and returns the configuration
-    dictionary.
+    Sets up a game from the specified parameters.
     
     The additional arguments are program default configuration files.  These
     are parsed before any inside the game site file (therefore giving the site
@@ -343,6 +343,8 @@ def setup(site='gamesite.xml', *config_files, **kw):
             Whether the sound manager volume should be configured automatically
         configMusic : bool
             Whether the music manager volume should be configured automatically
+    :Returns: The game's configuration
+    :ReturnType: dict
     """
     # Get keyword arguments
     configSound = kw.pop('configSound', True)
