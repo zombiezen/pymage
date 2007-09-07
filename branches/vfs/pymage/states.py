@@ -39,6 +39,7 @@ from pygame.locals import *
 from pymage import sprites
 from pymage import sound
 from pymage import ui
+from pymage import vfs
 
 __author__ = 'Ross Light'
 __date__ = 'May 22, 2006'
@@ -410,6 +411,8 @@ class Game(object):
             Whether the game is running
         clock : ``pygame.time.Clock``
             FPS timer
+        filesystem : `IFilesystem`
+            Abstract filesystem
     """
     screenSize = (800, 600)
     ticks = 60
@@ -434,12 +437,14 @@ class Game(object):
                 Directory to chdir to.  You can even pass sys.argv[0].
         """
         # Change to root directory (for relative paths)
-        os.chdir(os.path.abspath(os.path.dirname(root_dir)))
+        root_dir = os.path.abspath(os.path.dirname(root_dir))
+        os.chdir(root_dir)
         # Start with no state
         self.state = self.nextState = None
         self.running = False
         self.screen = None
         self.clock = None
+        self.filesystem = vfs.PhysicalFilesystem(root_dir)
         # Set up instance variables
         self.__dict__.update(kw)
         # Set up global game
