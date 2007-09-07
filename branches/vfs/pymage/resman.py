@@ -383,8 +383,14 @@ class Resource(object):
         :Returns: A file-like object representing that file
         :ReturnType: file
         """
-        filesystem = states.Game.getGame().filesystem
-        return filesystem.open(self.path, mode, buffering)
+        game = states.Game.getGame()
+        if game is not None:
+            return game.filesystem.open(self.__path, mode, buffering)
+        else:
+            if buffering is None:
+                return open(str(self.__path), mode)
+            else:
+                return open(str(self.__path), mode, buffering)
     
     def getPath(self):
         """
@@ -396,8 +402,11 @@ class Resource(object):
         :Returns: The physical file path
         :ReturnType: str
         """
-        filesystem = states.Game.getGame().filesystem
-        return filesystem.resolve(self.__path)
+        game = states.Game.getGame()
+        if game is not None:
+            return game.filesystem.resolve(self.__path)
+        else:
+            return str(self.__path)
     
     def setPath(self, newPath, **kw):
         """
