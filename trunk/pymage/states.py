@@ -39,6 +39,7 @@ from pygame.locals import *
 from pymage import sprites
 from pymage import sound
 from pymage import ui
+from pymage import vfs
 
 __author__ = 'Ross Light'
 __date__ = 'May 22, 2006'
@@ -410,20 +411,31 @@ class Game(object):
             Whether the game is running
         clock : ``pygame.time.Clock``
             FPS timer
+        filesystem : `IFilesystem`
+            Abstract filesystem
     """
     screenSize = (800, 600)
     ticks = 60
     flags = 0
     _globalGame = None
     
-    @classmethod
-    def getGame(cls):
+    @staticmethod
+    def getGame():
         """
         Retrieves the current game.
         
         :ReturnType: `Game`
         """
-        return cls._globalGame
+        return Game._globalGame
+    
+    def __new__(cls, *args, **kw):
+        # Create game object
+        newObject = super(Game, cls).__new__(cls, *args, **kw)
+        # Set up global game
+        if getattr(cls, '_globalGame', None) is None:
+            Game._globalGame = newObject
+        # Return new game object
+        return newObject
     
     def __init__(self, root_dir, **kw):
         """
@@ -434,17 +446,16 @@ class Game(object):
                 Directory to chdir to.  You can even pass sys.argv[0].
         """
         # Change to root directory (for relative paths)
-        os.chdir(os.path.abspath(os.path.dirname(root_dir)))
+        root_dir = os.path.abspath(os.path.dirname(root_dir))
+        os.chdir(root_dir)
         # Start with no state
         self.state = self.nextState = None
         self.running = False
         self.screen = None
         self.clock = None
+        self.filesystem = vfs.PhysicalFilesystem(root_dir)
         # Set up instance variables
         self.__dict__.update(kw)
-        # Set up global game
-        if type(self)._globalGame is None:
-            type(self)._globalGame = self
     
     def changeToState(self, state):
         """
