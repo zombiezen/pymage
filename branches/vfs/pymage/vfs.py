@@ -21,7 +21,12 @@
 #   along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""Virtual file system abstraction"""
+"""
+Virtual file system abstraction
+
+The goal of this module is to allow game data that is contained in a Python egg,
+zip file, or any other medium be capable of loading.  This means
+"""
 
 import os
 import re
@@ -36,9 +41,13 @@ __all__ = ['IFilesystem',
            'PhysicalFilesystem',]
 
 class IFilesystem(zope.interface.Interface):
+    """Interface for an abstracted filesystem."""
+    
     def resolve(path):
         """
         Resolves the abstract path to a physical one.
+        
+        This method *should* be implemented, but may be ignored if impossible.
         
         :Parameters:
             path : `Path` or string
@@ -51,6 +60,8 @@ class IFilesystem(zope.interface.Interface):
     def open(path, mode='r', buffering=None):
         """
         Opens a file object to the abstract path.
+        
+        This method *must* work under valid input.
         
         :Parameters:
             path : `Path` or string

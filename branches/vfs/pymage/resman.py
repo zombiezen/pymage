@@ -33,7 +33,7 @@ import warnings
 
 import pygame
 
-from pymage import states, vfs
+from pymage import vfs
 
 __author__ = 'Ross Light'
 __date__ = 'February 19, 2007'
@@ -383,7 +383,8 @@ class Resource(object):
         :Returns: A file-like object representing that file
         :ReturnType: file
         """
-        game = states.Game.getGame()
+        from pymage.states import Game
+        game = Game.getGame()
         if game is not None:
             return game.filesystem.open(self.__path, mode, buffering)
         else:
@@ -402,13 +403,14 @@ class Resource(object):
         :Returns: The physical file path
         :ReturnType: str
         """
-        game = states.Game.getGame()
+        from pymage.states import Game
+        game = Game.getGame()
         if game is not None:
             return game.filesystem.resolve(self.__path)
         else:
             return str(self.__path)
     
-    def setPath(self, newPath, **kw):
+    def setPath(self, new_path, **kw):
         """
         Changes the resource's abstract path.
         
@@ -423,7 +425,7 @@ class Resource(object):
             directory : bool
                 Whether the path is a directory
         """
-        self.__path = Path(newPath, **kw)
+        self.__path = vfs.Path(newPath, **kw)
     
     path = property(getPath, setPath,
                     doc="The path to the resource file")
