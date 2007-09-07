@@ -24,6 +24,7 @@
 """Virtual file system abstraction"""
 
 import os
+import re
 
 import zope.interface
 
@@ -261,6 +262,28 @@ class Path(object):
         parameters.update(kw)
         return Path(self.components, **parameters)
     
+    def sanitize(self, chars):
+        """
+        Sanitize the path by removing characters.
+        
+        :Parameters:
+            chars : str
+                The set of characters to remove
+        :Returns: The sanitized path
+        :ReturnType: `Path`
+        """
+        # Assemble regular expression
+        pattern = '|'.join(re.escape(char) for char in chars)
+        pattern = re.compile(pattern)
+        # Sanitize components
+        newComponents = []
+        for component in self.components:
+            newComponents.append(pattern.sub('', component))
+        # Create new path
+        return Path(newComponents,
+                    absolute=self.absolute,
+                    directory=self.directory)
+    
     # String representation
     
     def __repr__(self):
@@ -404,7 +427,7 @@ class PhysicalFilesystem(object):
     def _abspath(path):
         if not isinstance(path, Path):
             path = Path(path)
-        return path.convert(absolute=True)
+        return path.convert(absolute=True).sanitize(os.path.sep)
     
     def resolve(self, path):
         return os.path.join(self.root, *self._abspath(path).components)
