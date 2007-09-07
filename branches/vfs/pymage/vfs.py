@@ -21,7 +21,7 @@
 #   along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""Virtual file system abstraction."""
+"""Virtual file system abstraction"""
 
 import os
 
@@ -30,19 +30,12 @@ import zope.interface
 __author__ = 'Ross Light'
 __date__ = 'August 30, 2007'
 __docformat__ = 'reStructuredText'
-__all__ = ['sep',
-           'curdir',
-           'pardir',
-           'IFilesystem',
+__all__ = ['IFilesystem',
            'IFile',
            'IReadableFile',
            'IWritableFile',
            'Path',
            'PhysicalFilesystem',]
-
-sep = '/'
-curdir = '.'
-pardir = '..'
 
 class IFilesystem(zope.interface.Interface):
     def resolve(path):
@@ -110,6 +103,13 @@ class Path(object):
     conventions.  Paths are split up into components, and are automatically
     normalized.
     
+    :CVariables:
+        sep : str
+            Separator for string-based paths
+        curdir : str
+            Current directory indicator for string-based paths
+        pardir : str
+            Parent directory indicator for string-based paths
     :IVariables:
         components : tuple
             The components of the path
@@ -118,6 +118,11 @@ class Path(object):
         directory : bool
             Whether the path refers to a directory
     """
+    
+    sep = '/'
+    curdir = '.'
+    pardir = '..'
+    
     def __init__(self,
                  path=[],
                  absolute=False,
@@ -146,27 +151,27 @@ class Path(object):
             self.directory = path.directory
         elif isinstance(path, basestring):  # Initialization from string
             # Determine absoluteness
-            if path.startswith(sep):
+            if path.startswith(self.sep):
                 self.absolute = True
-                path = path[len(sep):]
+                path = path[len(self.sep):]
             else:
                 self.absolute = False
             # Determine directory
-            if path.endswith(sep):
+            if path.endswith(self.sep):
                 self.directory = True
-                path = path[:-len(sep)]
+                path = path[:-len(self.sep)]
             else:
                 self.directory = False
             # Split components
-            components = path.split(sep)
+            components = path.split(self.sep)
         else:                               # Initialization from sequence
             components = path
             self.absolute = bool(absolute)
             self.directory = bool(directory)
         self.components = tuple(self._normpath(components, self.absolute))
     
-    @staticmethod
-    def _normpath(components, absolute):
+    @classmethod
+    def _normpath(cls, components, absolute):
         """
         Normalize the path.
         
@@ -177,15 +182,15 @@ class Path(object):
         # Do immediate path cleaning
         result = []
         for component in components:
-            if sep in component:
+            if cls.sep in component:
                 raise ValueError("Separators are not allowed inside components")
-            elif component and component != curdir:
+            elif component and component != cls.curdir:
                 result.append(component)
         # Remove any fixable parent directory issues
         startIndex = 0
         while True:
             try:
-                parentIndex = result.index(pardir, startIndex)
+                parentIndex = result.index(cls.pardir, startIndex)
             except ValueError:
                 break
             else:
@@ -197,7 +202,7 @@ class Path(object):
                     del result[previousIndex]
         # Remove any leading parent directories if we are absolute
         if absolute:
-            while result and result[0] == pardir:
+            while result and result[0] == cls.pardir:
                 del result[0]
         # Return result
         return result
@@ -260,11 +265,11 @@ class Path(object):
         return result
     
     def __str__(self):
-        result = sep.join(self.components)
+        result = self.sep.join(self.components)
         if self.absolute:
-            result = sep + result
+            result = self.sep + result
         if self.directory:
-            result += sep
+            result += self.sep
         return result
     
     # Operators
