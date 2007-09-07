@@ -310,7 +310,7 @@ class Vector(object):
     
     def _calcAngle(self):
         """Calculate angle in degrees, ignoring z-axis."""
-        if numpy is None:
+        if numpy is None or not hasattr(numpy, 'angle'):
             if self.x == 0:
                 if self.y > 0:
                     deg = 90.0
