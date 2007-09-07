@@ -31,69 +31,77 @@ __author__ = 'Ross Light'
 __date__ = 'August 30, 2007'
 __docformat__ = 'reStructuredText'
 __all__ = ['IFilesystem',
-           'IFile',
-           'IReadableFile',
-           'IWritableFile',
            'Path',
            'PhysicalFilesystem',]
 
 class IFilesystem(zope.interface.Interface):
     def resolve(path):
-        pass
+        """
+        Resolves the abstract path to a physical one.
+        
+        :Parameters:
+            path : `Path` or string
+                The abstract path to resolve
+        :Raises TypeError: If resolving is impossible
+        :Returns: The physical file path
+        :ReturnType: str
+        """
     
     def open(path, mode='r', buffering=None):
-        pass
+        """
+        Opens a file object to the abstract path.
+        
+        :Parameters:
+            path : `Path` or string
+                The abstract path to open
+            mode : str
+                The mode flag (same as built-in ``open`` call)
+            buffering : int
+                The buffering mode (same as built-in ``open`` call)
+        :Returns: A file or file-like object representing that file
+        :ReturnType: file
+        """
     
     def listdir(path):
-        pass
+        """
+        Lists the children of a directory.
+        
+        :Parameters:
+            path : `Path` or string
+                The abstract path to the directory to list
+        :Returns: A list of subpaths
+        :ReturnType: list of `Path` objects
+        """
     
     def exists(path):
-        pass
+        """
+        Determines whether the path exists.
+        
+        :Parameters:
+            path : `Path` or string
+                The abstract path to check
+        :ReturnType: bool
+        """
     
     def isdir(path):
-        pass
+        """
+        Determines whether the path is a directory.
+        
+        :Parameters:
+            path : `Path` or string
+                The abstract path to check
+        :ReturnType: bool
+        """
     
     def isfile(path):
-        pass
-
-class IFile(zope.interface.Interface):
-    def close():
-        pass
-    
-    def flush():
-        pass
-    
-    def seek(offset, whence=0):
-        pass
-    
-    def tell():
-        pass
-
-class IReadableFile(IFile):
-    def __iter__():
-        pass
-    
-    def next():
-        pass
-    
-    def read(size=-1):
-        pass
-    
-    def readline(size=-1):
-        pass
-    
-    def readlines(size=-1):
-        pass
-
-class IWritableFile(IFile):
-    def truncate(size=None):
-        pass
-    
-    def write(data):
-        pass
-    
-    def writelines(sequence):
-        pass
+        """
+        Determines whether the path is a file.
+        
+        :Parameters:
+            path : `Path` or string
+                The abstract path to check
+        :ReturnType: bool
+        """
 
 class Path(object):
     """
