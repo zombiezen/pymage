@@ -418,6 +418,20 @@ class Path(object):
             return NotImplemented
 
 class PhysicalFilesystem(object):
+    """
+    Uses the underlying filesystem of the running machine.
+    
+    The filesystem is determined by a root directory, and anything higher than
+    that directory is disallowed.
+    
+    .. Warning:: Do not depend on this inability to go above the root; doing
+                 so would be a security flaw, as this currently does not check
+                 for symbolic links.
+    
+    :IVariables:
+        root : str
+            Root of the filesystem
+    """
     zope.interface.implements(IFilesystem)
     
     def __init__(self, root):
