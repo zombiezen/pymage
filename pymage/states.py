@@ -39,6 +39,7 @@ from pygame.locals import *
 from pymage import sprites
 from pymage import sound
 from pymage import ui
+from pymage import vfs
 
 __author__ = 'Ross Light'
 __date__ = 'May 22, 2006'
@@ -452,6 +453,7 @@ class Game(object):
         self.running = False
         self.screen = None
         self.clock = None
+        self.filesystem = vfs.PhysicalFilesystem(root_dir)
         # Set up instance variables
         self.__dict__.update(kw)
     

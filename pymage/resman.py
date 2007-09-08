@@ -33,6 +33,8 @@ import warnings
 
 import pygame
 
+from pymage import vfs
+
 __author__ = 'Ross Light'
 __date__ = 'February 19, 2007'
 __all__ = ['ResourceManager',
@@ -304,7 +306,7 @@ class Resource(object):
             path : string
                 The path to the resource file
         """
-        self.path = path
+        self.__path = vfs.Path(path)
         self.cache = None
     
     def load(self):
@@ -368,6 +370,65 @@ class Resource(object):
         The default implementation sets the `cache` attribute to ``None``.
         """
         self.cache = None
+    
+    def openFile(self, mode='r', buffering=None):
+        """
+        Opens a file object to the resource's path.
+        
+        :Parameters:
+            mode : str
+                The mode flag (same as built-in ``open`` call)
+            buffering : int
+                The buffering mode (same as built-in ``open`` call)
+        :Returns: A file-like object representing that file
+        :ReturnType: file
+        """
+        from pymage.states import Game
+        game = Game.getGame()
+        if game is not None:
+            return game.filesystem.open(self.__path, mode, buffering)
+        else:
+            if buffering is None:
+                return open(str(self.__path), mode)
+            else:
+                return open(str(self.__path), mode, buffering)
+    
+    def getPath(self):
+        """
+        Resolves the resource's physical path.
+        
+        You can also use the `path` property.
+        
+        :Raises TypeError: If resolving is impossible
+        :Returns: The physical file path
+        :ReturnType: str
+        """
+        from pymage.states import Game
+        game = Game.getGame()
+        if game is not None:
+            return game.filesystem.resolve(self.__path)
+        else:
+            return str(self.__path)
+    
+    def setPath(self, new_path, **kw):
+        """
+        Changes the resource's abstract path.
+        
+        You can also use the `path` property.
+        
+        :Parameters:
+            newPath : str or list
+                The new path for the resource
+        :Keywords:
+            absolute : bool
+                Whether the path is absolute
+            directory : bool
+                Whether the path is a directory
+        """
+        self.__path = vfs.Path(newPath, **kw)
+    
+    path = property(getPath, setPath,
+                    doc="The path to the resource file")
 
 class ImageResource(Resource):
     """
@@ -387,6 +448,7 @@ class ImageResource(Resource):
         :IVariables:
             path : string
                 Path to the resource file
+        :Keywords:
             convert : bool
                 Whether to convert to screen format after loading
             alpha : bool
@@ -404,7 +466,7 @@ class ImageResource(Resource):
         :Returns: The surface of the image
         :ReturnType: ``pygame.Surface``
         """
-        img = pygame.image.load(self.path)
+        img = pygame.image.load(self.openFile('rb'))
         if self.convert:
             if self.alpha:
                 return img.convert_alpha()
@@ -426,7 +488,7 @@ class SoundResource(AudioResource):
         :Returns: The sound object
         :ReturnType: ``pygame.mixer.Sound``
         """
-        return pygame.mixer.Sound(self.path)
+        return pygame.mixer.Sound(self.openFile('rb'))
 
 class MusicResource(AudioResource):
     """Music resource loader."""
