@@ -1,6 +1,14 @@
 #summary Different releases and their changes
 #labels Type-Info
 
+= Version 0.3.0 =
+
+  * Added virtual file system, which supports:
+    * Physical file system
+    * [http://peak.telecommunity.com/DevCenter/PkgResources pkg_resources]
+  * Fixed Numeric angle calculation bug
+  * Fixed config.save section bug
+
 = Version 0.2.2 =
 
   * Major documentation overhaul
