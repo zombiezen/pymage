@@ -32,6 +32,10 @@ distribution options for your game.
 import os
 import re
 
+try:
+    import pkg_resources
+except ImportError:
+    pass
 import zope.interface
 
 __author__ = 'Ross Light'
@@ -39,7 +43,8 @@ __date__ = 'August 30, 2007'
 __docformat__ = 'reStructuredText'
 __all__ = ['IFilesystem',
            'Path',
-           'PhysicalFilesystem',]
+           'PhysicalFilesystem',
+           'PackageResources',]
 
 class IFilesystem(zope.interface.Interface):
     """Interface for an abstracted filesystem."""
@@ -469,7 +474,7 @@ class PhysicalFilesystem(object):
         result = []
         for name in os.listdir(self.resolve(path)):
             subpath = path.relativePath(name)
-            if os.path.isdir(self.resolve(subpath)):
+            if self.isdir(subpath):
                 subpath = subpath.convert(directory=True)
             result.append(subpath)
         result.sort()
@@ -483,3 +488,59 @@ class PhysicalFilesystem(object):
     
     def isfile(self, path):
         return os.path.isfile(self.resolve(path))
+
+class PackageResources(object):
+    """
+    Uses the pkg_resources_ module to obtain files.
+    
+    :IVariables:
+        package : str
+            Name of the package
+    
+    .. _pkg_resources: http://peak.telecommunity.com/DevCenter/PkgResources
+    """
+    zope.interface.implements(IFilesystem)
+    
+    def __init__(self, package):
+        self.package = package
+    
+    @staticmethod
+    def _abspath(path):
+        if not isinstance(path, Path):
+            path = Path(path)
+        return path.convert(absolute=True)
+    
+    @classmethod
+    def _strpath(cls, path):
+        return str(cls._abspath(path))
+    
+    def resolve(self, path):
+        return pkg_resources.resource_filename(self.package,
+                                               self._strpath(path))
+    
+    def open(self, path, mode='r', buffering=None):
+        if mode not in ('r', 'rb'):
+            raise ValueError("File must be opened in read, not %r" % mode)
+        return pkg_resources.resource_stream(self.package, self._strpath(path))
+    
+    def listdir(self, path):
+        path = self._abspath(path).convert(directory=True)
+        result = []
+        for name in pkg_resources.resource_listdir(self.package, str(path)):
+            subpath = path.relativePath(name)
+            if self.isdir(subpath):
+                subpath = subpath.convert(directory=True)
+            result.append(subpath)
+        result.sort()
+        return result
+    
+    def exists(self, path):
+        return pkg_resources.resource_exists(self.package, self._strpath(path))
+    
+    def isdir(self, path):
+        return pkg_resources.resource_isdir(self.package, self._strpath(path))
+    
+    def isfile(self, path):
+        path = self._strpath(path)
+        return (pkg_resources.resource_exists(self.package, path) and
+                not pkg_resources.resource_isdir(self.package, path))
