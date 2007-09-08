@@ -105,6 +105,8 @@ from xml.dom import minidom
 
 from pymage import resman
 from pymage import sound
+from pymage import states
+from pymage import vfs
 
 __author__ = 'Ross Light'
 __date__ = 'August 10, 2006'
@@ -159,13 +161,22 @@ def load(*args, **kw):
     parser = CaseConfigParser(kw)
     for configFile in args:
         close = False
-        if isinstance(configFile, basestring):
+        if isinstance(configFile, (basestring, vfs.Path)):
             # Open strings as paths
-            path = os.path.normpath(os.path.expanduser(configFile))
-            if os.path.exists(path):
-                configFile = open(path)
+            game = states.Game.getGame()
+            if game is None:
+                # Use physical filesystem
+                path = os.path.normpath(os.path.expanduser(configFile))
+                if os.path.exists(path):
+                    configFile = open(path)
+                else:
+                    continue
             else:
-                continue
+                # Use virtual filesystem
+                if not game.filesystem.exists(configFile):
+                    configFile = game.filesystem.open(path)
+                else:
+                    continue
             close = True
         parser.readfp(configFile)
         if close:
@@ -182,29 +193,38 @@ def load(*args, **kw):
         configDict[section] = sectionDict
     return configDict
 
-def save(config, configFile):
+def save(config, config_file):
     """
     Saves a configuration dictionary to a file.
     
     :Parameters:
         config : dict
             Configuration dictionary
-        configFile : string or file
+        config_file : string or file
             File to write configuration to
     """
-    close = False
+    # Create configuration writer
     parser = CaseConfigParser()
     for section, values in config.iteritems():
         parser.add_section(section)
         for option, value in values.iteritems():
             parser.set(section, option, value)
-    if isinstance(configFile, basestring):
-        path = os.path.normpath(os.path.expanduser(configFile))
-        configFile = open(path, 'w')
+    # Determine file to write
+    close = False
+    if isinstance(config_file, (basestring, vfs.Path)):
+        game = states.Game.getGame()
+        if game is not None:
+            config_file = game.filesystem.open(site)
+        else:
+            if isinstance(config_file, vfs.Path):
+                config_file = str(config_file)
+            path = os.path.normpath(os.path.expanduser(config_file))
+            config_file = open(path, 'w')
         close = True
-    parser.write(configFile)
+    # Write file and close
+    parser.write(config_file)
     if close:
-        configFile.close()
+        config_file.close()
 
 def _getValue(value_string):
     """
@@ -337,7 +357,7 @@ def setup(site='gamesite.xml', *config_files, **kw):
     
     :Parameters:
         site : string or file
-            Game site file.
+            Game site file
     :Keywords:
         configSound : bool
             Whether the sound manager volume should be configured automatically
@@ -351,6 +371,13 @@ def setup(site='gamesite.xml', *config_files, **kw):
     configMusic = kw.pop('configMusic', True)
     if kw:
         raise TypeError("Invalid keyword argument")
+    # See if we can use the game's filesystem
+    if isinstance(site, (basestring, vfs.Path)):
+        game = states.Game.getGame()
+        if game is not None:
+            site = game.filesystem.open(site)
+        elif isinstance(site, vfs.Path):
+            site = str(site)
     # Parse game site file
     doc = minidom.parse(site)
     config = _getSiteConfig(doc, config_files)

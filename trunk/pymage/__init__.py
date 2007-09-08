@@ -56,7 +56,8 @@ __all__ = ['config',
            'states',
            'timer',
            'ui',
-           'vector',]
+           'vector',
+           'vfs',]
 __docformat__ = 'reStructuredText'
 __version__ = '0.2.2'
 
@@ -69,3 +70,4 @@ from pymage import states
 from pymage import timer
 from pymage import ui
 from pymage import vector
+from pymage import vfs
