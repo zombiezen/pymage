@@ -13,6 +13,7 @@ should be oriented toward creating games.
  * State machine
  * Resource sets
  * Fast vectors using [http://numpy.scipy.org/ Numeric Python]
+ * Virtual file system
 
 = Finished In Subversion =
 
