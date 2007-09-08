@@ -42,7 +42,7 @@ if sys.version < '2.4.0':
 
 # Call setup function
 setup(name="pymage",
-      version='0.2.2',
+      version='0.3.0rc1',
       description="Pygame helper package",
       long_description="""\
 pymage is a Python package that simplifies many aspects of Pygame programming
@@ -73,7 +73,7 @@ Its features include:
         'Topic :: Games/Entertainment',],
       test_suite='tests',
       packages=['pymage'],
-      install_requires=['pygame'],
+      install_requires=['pygame', 'zope.interface'],
       extras_require={
         'OpenGL': ["PyOpenGL"],
         'Twisted': ["Twisted"],
