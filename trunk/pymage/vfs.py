@@ -25,7 +25,8 @@
 Virtual file system abstraction
 
 The goal of this module is to allow game data that is contained in a Python egg,
-zip file, or any other medium be capable of loading.  This means
+zip file, or any other medium be capable of loading.  This leads to more
+distribution options for your game.
 """
 
 import os
