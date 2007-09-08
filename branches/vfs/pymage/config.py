@@ -372,7 +372,7 @@ def setup(site='gamesite.xml', *config_files, **kw):
     if kw:
         raise TypeError("Invalid keyword argument")
     # See if we can use the game's filesystem
-    if isinstance(site, (basestring, Path)):
+    if isinstance(site, (basestring, vfs.Path)):
         game = states.Game.getGame()
         if game is not None:
             site = game.filesystem.open(site)
