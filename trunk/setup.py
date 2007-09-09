@@ -24,8 +24,8 @@
 """setuptools script for pymage"""
 
 # Run bootstrap setuptools installer
-from ez_setup import use_setuptools
-use_setuptools()
+import ez_setup
+ez_setup.use_setuptools()
 
 # Import modules
 from setuptools import setup
@@ -80,5 +80,6 @@ Its features include:
       extras_require={
         'OpenGL': ["PyOpenGL"],
         'Twisted': ["Twisted"],
+        'FastVector': ["numpy"],
       },
       zip_safe=True,)
