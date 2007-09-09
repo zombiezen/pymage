@@ -402,6 +402,9 @@ class Game(object):
         flags : int
             Flags to pass to the display, as described in
             ``pygame.display.set_mode``.
+        chdirToRoot : bool
+            Whether the game should change the working directory to the root
+            on startup.
     :IVariables:
         state : `State`
             Current state
@@ -417,6 +420,7 @@ class Game(object):
     screenSize = (800, 600)
     ticks = 60
     flags = 0
+    chdirToRoot = True
     _globalGame = None
     
     @staticmethod
@@ -447,7 +451,8 @@ class Game(object):
         """
         # Change to root directory (for relative paths)
         root_dir = os.path.abspath(os.path.dirname(root_dir))
-        os.chdir(root_dir)
+        if self.chdirToRoot:
+            os.chdir(root_dir)
         # Start with no state
         self.state = self.nextState = None
         self.running = False
