@@ -59,7 +59,7 @@ __all__ = ['config',
            'vector',
            'vfs',]
 __docformat__ = 'reStructuredText'
-__version__ = '0.3.0'
+__version__ = '0.3.0patch1'
 
 from pymage import config
 from pymage import joystick

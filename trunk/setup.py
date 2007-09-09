@@ -42,7 +42,7 @@ if sys.version < '2.4.0':
 
 # Call setup function
 setup(name="pymage",
-      version='0.3.0',
+      version='0.3.0patch1',
       description="Pygame helper package",
       long_description="""\
 pymage is a Python package that simplifies many aspects of Pygame programming
@@ -55,7 +55,8 @@ Its features include:
 * Music playlists
 * Vectors
 * State machine
-* High-level timing""",
+* High-level timing
+* Virtual file system""",
       license='LGPL',
       author="Ross Light",
       author_email='rlight2@gmail.com',
@@ -64,13 +65,15 @@ Its features include:
       download_url='http://code.google.com/p/pymage/downloads/list',
       classifiers=[
         'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
         'Natural Language :: English',
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
-        'Topic :: Games/Entertainment',],
+        'Topic :: Games/Entertainment',
+        'Topic :: Software Development :: Libraries :: Python Modules',],
       test_suite='tests',
       packages=['pymage'],
       install_requires=['pygame', 'zope.interface'],
