@@ -1,6 +1,12 @@
 #summary Different releases and their changes
 #labels Type-Info
 
+= Version 0.3.0patch1 =
+
+  * Fixed fatal VFS config bug
+  * Added game flag for not chdir-ing to game root
+  * Fixed PackageResources to strip leading parents and turn relative
+
 = Version 0.3.0 =
 
   * Added virtual file system, which supports:
