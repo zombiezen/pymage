@@ -11,9 +11,9 @@ Recent versions of pymage (0.3.0 and newer) need [http://www.zope.org/Products/Z
 
 == Optional Packages ==
 
-  * PyOpenGL (for 3D support)
-  * Twisted (for an asynchronous event loop)
-  * Numeric (for fast vectors)
+  * [http://pyopengl.sourceforge.net/ PyOpenGL] (for 3D support)
+  * [http://twistedmatrix.com/ Twisted] (for an asynchronous event loop)
+  * [http://numpy.scipy.org/ NumPy] (for fast vectors)
 
 = The easy_install way =
 

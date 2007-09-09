@@ -38,7 +38,7 @@
   * Added configSound
   * Upgraded unit tests
   * Added fast vectors with transparent support for [http://numpy.scipy.org/ Numeric Python]
-  * Added minimal OpenGL support
+  * Added minimal [http://pyopengl.sourceforge.net/ OpenGL] support
   * Added end method to Game class
 
 = Version 0.1.2 =
