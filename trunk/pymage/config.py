@@ -166,15 +166,15 @@ def load(*args, **kw):
             game = states.Game.getGame()
             if game is None:
                 # Use physical filesystem
-                path = os.path.normpath(os.path.expanduser(configFile))
-                if os.path.exists(path):
-                    configFile = open(path)
+                configFile = os.path.normpath(os.path.expanduser(configFile))
+                if os.path.exists(configFile):
+                    configFile = open(configFile)
                 else:
                     continue
             else:
                 # Use virtual filesystem
-                if not game.filesystem.exists(configFile):
-                    configFile = game.filesystem.open(path)
+                if game.filesystem.exists(configFile):
+                    configFile = game.filesystem.open(configFile)
                 else:
                     continue
             close = True
