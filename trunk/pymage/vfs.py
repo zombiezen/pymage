@@ -508,7 +508,9 @@ class PackageResources(object):
     def _abspath(path):
         if not isinstance(path, Path):
             path = Path(path)
-        return path.convert(absolute=True)
+        # We convert to absolute and back so that any leading
+        # parent directories are stripped
+        return path.convert(absolute=True).convert(absolute=False)
     
     @classmethod
     def _strpath(cls, path):
