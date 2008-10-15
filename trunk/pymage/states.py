@@ -168,7 +168,7 @@ class GLState(State):
         """Sets the OpenGL clear color from the `bgColor` attribute."""
         r, g, b = self.bgColor[:3]
         if len(self.bgColor) >= 4:
-            a = self.bgColor[4]
+            a = self.bgColor[3]
         else:
             a = 1.0
         glClearColor(r, g, b, a)
